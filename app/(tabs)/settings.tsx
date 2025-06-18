@@ -2,14 +2,10 @@ import React from 'react';
 import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing } from '@/constants/Design';
+import { Typography, Spacing } from '@/constants/Design';
 import { Switch } from '@/components/ui';
-import {
-  useAppSettings,
-  useTheme,
-  useNotificationSettings,
-  useAudioSettings,
-} from '@/hooks/useStores';
+import { useAppSettings, useNotificationSettings, useAudioSettings } from '@/hooks/useStores';
+import { useTheme } from '@/hooks/useTheme';
 
 interface SettingsItemProps {
   title: string;
@@ -28,20 +24,32 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
   rightComponent,
   showChevron = true,
 }) => {
+  const { colors } = useTheme();
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    }
+  };
+
   return (
     <TouchableOpacity
-      style={styles.settingsItem}
-      onPress={onPress}
+      style={[styles.settingsItem, { borderBottomColor: colors.border }]}
+      onPress={handlePress}
       disabled={!onPress}
       activeOpacity={onPress ? 0.7 : 1}
     >
       <View style={styles.settingsItemLeft}>
-        <View style={styles.iconContainer}>
-          <Ionicons name={icon} size={24} color={Colors.light.primary} />
+        <View style={[styles.iconContainer, { backgroundColor: colors.primaryLight + '20' }]}>
+          <Ionicons name={icon} size={24} color={colors.primary} />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.settingsTitle}>{title}</Text>
-          {subtitle && <Text style={styles.settingsSubtitle}>{subtitle}</Text>}
+          <Text style={[styles.settingsTitle, { color: colors.text }]}>{title}</Text>
+          {subtitle && (
+            <Text style={[styles.settingsSubtitle, { color: colors.textSecondary }]}>
+              {subtitle}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -51,7 +59,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
           <Ionicons
             name="chevron-forward"
             size={20}
-            color={Colors.light.textSecondary}
+            color={colors.textSecondary}
             style={styles.chevron}
           />
         )}
@@ -66,25 +74,42 @@ interface SettingsSectionProps {
 }
 
 const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionContent}>{children}</View>
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{title}</Text>
+      <View style={[styles.sectionContent, { backgroundColor: colors.surface }]}>{children}</View>
     </View>
   );
 };
 
 export default function SettingsScreen() {
   const { settings } = useAppSettings();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, colors } = useTheme();
   const { notifications, updateNotificationSettings } = useNotificationSettings();
   const { defaultAlarmVolume, fadeInDuration, defaultSnoozeTime } = useAudioSettings();
 
   const handleThemePress = () => {
     Alert.alert('Theme', 'Choose your preferred theme', [
-      { text: 'Light', onPress: () => setTheme('light') },
-      { text: 'Dark', onPress: () => setTheme('dark') },
-      { text: 'Auto', onPress: () => setTheme('auto') },
+      {
+        text: 'Light',
+        onPress: () => {
+          setTheme('light');
+        },
+      },
+      {
+        text: 'Dark',
+        onPress: () => {
+          setTheme('dark');
+        },
+      },
+      {
+        text: 'Auto',
+        onPress: () => {
+          setTheme('auto');
+        },
+      },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
@@ -115,7 +140,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -123,7 +148,7 @@ export default function SettingsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Settings</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
         </View>
 
         {/* Appearance Section */}
@@ -318,7 +343,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   scrollView: {
     flex: 1,
@@ -332,7 +356,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.title1,
-    color: Colors.light.text,
   },
   section: {
     marginTop: Spacing.lg,
@@ -340,14 +363,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...Typography.headline,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   sectionContent: {
-    backgroundColor: Colors.light.surface,
     marginHorizontal: Spacing.lg,
     borderRadius: 12,
     overflow: 'hidden',
@@ -359,7 +380,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
   },
   settingsItemLeft: {
     flexDirection: 'row',
@@ -370,7 +390,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.light.primaryLight + '20',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -381,11 +400,9 @@ const styles = StyleSheet.create({
   settingsTitle: {
     ...Typography.body,
     fontWeight: '500',
-    color: Colors.light.text,
   },
   settingsSubtitle: {
     ...Typography.footnote,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   settingsItemRight: {

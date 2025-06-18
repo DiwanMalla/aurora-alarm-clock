@@ -1,7 +1,6 @@
 import React from 'react';
 import { Switch as RNSwitch, Platform, StyleSheet } from 'react-native';
-import { Colors } from '../../constants/Design';
-import { useColorScheme } from '../useColorScheme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface SwitchProps {
   value: boolean;
@@ -18,8 +17,7 @@ export const Switch: React.FC<SwitchProps> = ({
   style,
   testID = 'switch',
 }) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
 
   return (
     <RNSwitch

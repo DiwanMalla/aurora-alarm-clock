@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { hapticFeedback } from '@/lib/haptics';
 import { AnimatedButtonProps } from '@/types';
+import { useTheme } from '@/hooks/useTheme';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -26,6 +27,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   loading = false,
   size = 'medium',
 }) => {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -51,7 +53,23 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   const getButtonStyle = (): ViewStyle => {
     const baseStyle = styles.button;
     const sizeStyle = styles[`${size}Button` as keyof typeof styles] as ViewStyle;
-    const variantStyle = styles[`${variant}Button` as keyof typeof styles] as ViewStyle;
+
+    let variantStyle: ViewStyle = {};
+    switch (variant) {
+      case 'primary':
+        variantStyle = { backgroundColor: colors.primary };
+        break;
+      case 'secondary':
+        variantStyle = { backgroundColor: colors.surface };
+        break;
+      case 'outline':
+        variantStyle = {
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderColor: colors.primary,
+        };
+        break;
+    }
 
     return {
       ...baseStyle,
@@ -64,7 +82,17 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   const getTextStyle = (): TextStyle => {
     const baseStyle = styles.text;
     const sizeStyle = styles[`${size}Text` as keyof typeof styles] as TextStyle;
-    const variantStyle = styles[`${variant}Text` as keyof typeof styles] as TextStyle;
+
+    let variantStyle: TextStyle = {};
+    switch (variant) {
+      case 'primary':
+        variantStyle = { color: colors.background };
+        break;
+      case 'secondary':
+      case 'outline':
+        variantStyle = { color: colors.primary };
+        break;
+    }
 
     return {
       ...baseStyle,
@@ -83,7 +111,10 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#FFFFFF' : '#007AFF'} size="small" />
+        <ActivityIndicator
+          color={variant === 'primary' ? colors.background : colors.primary}
+          size="small"
+        />
       ) : (
         <Text style={getTextStyle()}>{title}</Text>
       )}
@@ -116,19 +147,6 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
 
-  // Variant styles
-  primaryButton: {
-    backgroundColor: '#007AFF',
-  },
-  secondaryButton: {
-    backgroundColor: '#F2F2F7',
-  },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-
   // Text styles
   text: {
     fontWeight: '600',
@@ -141,14 +159,5 @@ const styles = StyleSheet.create({
   },
   largeText: {
     fontSize: 18,
-  },
-  primaryText: {
-    color: '#FFFFFF',
-  },
-  secondaryText: {
-    color: '#007AFF',
-  },
-  outlineText: {
-    color: '#007AFF',
   },
 });

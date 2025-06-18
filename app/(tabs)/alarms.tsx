@@ -1,19 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AlarmCard, Label } from '@/components/ui';
 import { useAlarmManagement } from '@/hooks/useStores';
-import { Colors, Spacing } from '@/constants/Design';
-import { useColorScheme } from '@/components/useColorScheme';
+import { Spacing } from '@/constants/Design';
+import { useTheme } from '@/hooks/useTheme';
 import { Alarm } from '@/stores/alarmStore';
 
 export default function AlarmsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
 
   const { alarms, updateAlarm, deleteAlarm, getNextAlarm } = useAlarmManagement();
   const nextAlarm = getNextAlarm();
@@ -23,7 +20,7 @@ export default function AlarmsScreen() {
       'Alarm Details',
       `Label: ${alarm.label}\nTime: ${alarm.time}\nEnabled: ${alarm.enabled ? 'Yes' : 'No'}`,
       [
-        { text: 'Edit', onPress: () => console.log('Edit alarm:', alarm.id) },
+        { text: 'Edit', onPress: () => {} },
         { text: 'Cancel', style: 'cancel' },
       ]
     );
@@ -44,6 +41,11 @@ export default function AlarmsScreen() {
     ]);
   };
 
+  const handleAlarmSnooze = (id: string) => {
+    Alert.alert('Snooze Alarm', 'Alarm snoozed for 9 minutes', [{ text: 'OK' }]);
+    // TODO: Implement actual snooze logic
+  };
+
   const sortedAlarms = [...alarms].sort((a, b) => {
     // Sort by time (convert to minutes for easy comparison)
     const getMinutes = (timeStr: string) => {
@@ -55,7 +57,7 @@ export default function AlarmsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Next Alarm Info */}
@@ -105,63 +107,73 @@ export default function AlarmsScreen() {
                 weight="semibold"
                 style={{ color: colors.textSecondary, marginTop: Spacing.md, textAlign: 'center' }}
               >
-                No Alarms Yet
+                No Alarms Set
               </Label>
               <Label
                 size="medium"
                 style={{ color: colors.textTertiary, marginTop: Spacing.xs, textAlign: 'center' }}
               >
-                Tap the + button to create your first alarm
+                Tap + to create your first alarm
               </Label>
             </View>
           ) : (
-            sortedAlarms.map((alarm) => (
-              <AlarmCard
-                key={alarm.id}
-                alarm={alarm}
-                onPress={handleAlarmPress}
-                onToggle={handleAlarmToggle}
-                onDelete={handleAlarmDelete}
-                style={{ marginBottom: Spacing.sm }}
-              />
-            ))
+            <View style={styles.alarmsList}>
+              {sortedAlarms.map((alarm) => (
+                <AlarmCard
+                  key={alarm.id}
+                  alarm={alarm}
+                  onPress={() => handleAlarmPress(alarm)}
+                  onToggle={(id: string, enabled: boolean) => handleAlarmToggle(id, enabled)}
+                  onDelete={() => handleAlarmDelete(alarm.id)}
+                  onSnooze={(id: string) => handleAlarmSnooze(id)}
+                />
+              ))}
+            </View>
           )}
         </View>
 
-        {/* Quick Add Section */}
-        <View style={styles.quickAddSection}>
+        {/* Quick Add Buttons */}
+        <View style={styles.quickAddContainer}>
           <Label
             size="medium"
             weight="semibold"
             style={{ color: colors.text, marginBottom: Spacing.md }}
           >
-            Quick Alarms
+            Quick Add
           </Label>
-          <View style={styles.quickAddGrid}>
-            {[15, 30, 45, 60].map((minutes) => (
-              <Pressable
-                key={minutes}
-                style={[
-                  styles.quickAddButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                ]}
-                onPress={() => {
-                  const now = new Date();
-                  const alarmTime = new Date(now.getTime() + minutes * 60000);
-                  const timeString = alarmTime.toTimeString().slice(0, 5);
+          <View style={styles.quickAddButtons}>
+            {[15, 30, 45, 60].map((minutes) => {
+              const now = new Date();
+              const futureTime = new Date(now.getTime() + minutes * 60000);
+              const timeString = futureTime.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              });
 
-                  // This would open the add alarm modal with pre-filled time
-                  Alert.alert(
-                    'Quick Alarm',
-                    `Set alarm for ${timeString}? (${minutes} minutes from now)`
-                  );
-                }}
-              >
-                <Label size="small" weight="semibold" style={{ color: colors.primary }}>
-                  +{minutes}m
-                </Label>
-              </Pressable>
-            ))}
+              return (
+                <Pressable
+                  key={minutes}
+                  style={[
+                    styles.quickAddButton,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                  onPress={() => {
+                    Alert.alert(
+                      'Quick Alarm',
+                      `Set alarm for ${timeString}? (${minutes} minutes from now)`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Set', onPress: () => {} },
+                      ]
+                    );
+                  }}
+                >
+                  <Label size="small" weight="semibold" style={{ color: colors.primary }}>
+                    +{minutes}m
+                  </Label>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       </ScrollView>
@@ -177,12 +189,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: Spacing.screenPadding,
-    paddingBottom: Spacing.xl,
+    padding: Spacing.lg,
   },
   nextAlarmCard: {
     padding: Spacing.md,
-    borderRadius: Spacing.md,
+    borderRadius: 12,
     borderWidth: 1,
     marginBottom: Spacing.lg,
   },
@@ -190,33 +201,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  alarmsContainer: {
+    marginBottom: Spacing.xl,
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.md,
   },
-  alarmsContainer: {
-    marginBottom: Spacing.xl,
-  },
   emptyState: {
     alignItems: 'center',
-    padding: Spacing.xl,
+    paddingVertical: Spacing.xl * 2,
   },
-  quickAddSection: {
-    marginTop: Spacing.lg,
+  alarmsList: {
+    gap: Spacing.sm,
   },
-  quickAddGrid: {
+  quickAddContainer: {
+    marginBottom: Spacing.xl,
+  },
+  quickAddButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   quickAddButton: {
     flex: 1,
-    height: 44,
-    borderRadius: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: 8,
     borderWidth: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: Spacing.xs / 2,
   },
 });

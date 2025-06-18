@@ -10,12 +10,14 @@
 ## Initial Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/DiwanMalla/aurora-alarm-clock.git
    cd aurora-alarm-clock
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -48,21 +50,25 @@ npm run test:coverage # Run tests with coverage report
 ## Project Architecture
 
 ### State Management
+
 - **Zustand** for global state (alarms, settings)
 - **AsyncStorage** for data persistence
 - Custom hooks for store access
 
 ### Navigation
+
 - **Expo Router** for file-based routing
 - Tab navigation for main screens
 - Stack navigation for detailed views
 
 ### Styling
+
 - **StyleSheet** for component styles
 - Centralized design system in `constants/Design.ts`
 - Theme support for light/dark modes
 
 ### Testing
+
 - **Jest** for unit tests
 - **React Native Testing Library** for component tests
 - Custom test utilities in `jest-setup.js`
@@ -70,16 +76,19 @@ npm run test:coverage # Run tests with coverage report
 ## Code Style Guidelines
 
 ### TypeScript
+
 - Use strict type checking
 - Define interfaces for all props and state
 - Use explicit return types for complex functions
 
 ### Components
+
 - Functional components with hooks
 - PropTypes via TypeScript interfaces
 - Consistent naming conventions
 
 ### Styling
+
 - Use design system constants
 - Avoid inline styles
 - Platform-specific styles when needed
@@ -111,16 +120,19 @@ npm run test:coverage # Run tests with coverage report
 ### Common Issues
 
 **Metro bundler errors**
+
 ```bash
 npm start -- --clear-cache
 ```
 
 **TypeScript errors**
+
 ```bash
 npm run type-check
 ```
 
 **Test failures**
+
 ```bash
 npm test -- --verbose
 ```

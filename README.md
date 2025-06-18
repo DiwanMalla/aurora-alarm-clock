@@ -27,6 +27,20 @@ npm run ios
 npm run android
 ```
 
+## 🔄 CI/CD Pipeline
+
+This project includes a complete CI/CD pipeline using GitHub Actions:
+
+- **Continuous Integration**: Automated testing, linting, and type checking on every PR
+- **Build & Release**: Automated Android/iOS builds on git tags
+- **Preview Builds**: Expo preview builds for PR testing
+- **Dependency Updates**: Automated dependency management with Dependabot
+
+[![CI Status](https://github.com/yourusername/clock/workflows/Continuous%20Integration/badge.svg)](https://github.com/yourusername/clock/actions)
+[![Build Status](https://github.com/yourusername/clock/workflows/Build%20%26%20Release/badge.svg)](https://github.com/yourusername/clock/actions)
+
+For detailed CI/CD setup instructions, see [CI/CD Documentation](docs/development/CI_CD.md).
+
 ## 🏗️ Tech Stack
 
 - **React Native** with Expo Router
@@ -63,6 +77,7 @@ npm run android
 ## 🎨 Design System
 
 Aurora Clock follows a comprehensive design system with:
+
 - Consistent color palette for light and dark themes
 - Typography scale following iOS Human Interface Guidelines
 - Standardized spacing and component sizing
@@ -112,8 +127,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Aurora Clock** - Wake up to a beautiful sunrise every day 🌅
-/assets/              # Images, fonts, and other assets
-```
+/assets/ # Images, fonts, and other assets
+
+````
 
 ## 🎯 Key Components
 
@@ -155,7 +171,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```bash
 git clone <repository-url>
 cd clock
-```
+````
 
 2. Install dependencies:
 

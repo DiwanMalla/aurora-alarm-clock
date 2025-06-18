@@ -1,0 +1,53 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 10
+    reviewers:
+      - '@diwanmalla'
+    assignees:
+      - '@diwanmalla'
+    commit-message:
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
+    groups:
+      expo:
+        patterns:
+          - 'expo*'
+          - '@expo/*'
+      react:
+        patterns:
+          - 'react*'
+          - '@react*'
+      testing:
+        patterns:
+          - '*jest*'
+          - '@testing-library/*'
+          - 'react-test-renderer'
+      linting:
+        patterns:
+          - 'eslint*'
+          - '@typescript-eslint/*'
+          - 'prettier'
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    reviewers:
+      - '@diwanmalla'
+    assignees:
+      - '@diwanmalla'
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'

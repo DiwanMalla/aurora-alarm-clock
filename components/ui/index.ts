@@ -1,6 +1,6 @@
 // Core UI Components
 export { default as TimePicker } from './TimePicker';
-export { default as AlarmCard } from './AlarmCard';
+export { AlarmCard } from './AlarmCard';
 export { default as Switch } from './Switch';
 export { default as Modal } from './Modal';
 export { default as TextInput } from './TextInput';

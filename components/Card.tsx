@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,10 +8,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { hapticFeedback } from '@/lib/haptics';
 import { CardProps } from '@/types';
+import { useTheme } from '@/hooks/useTheme';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export const Card: React.FC<CardProps> = ({ title, subtitle, children, onPress, style }) => {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -39,9 +41,17 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, children, onPress, 
   };
 
   const Container = onPress ? AnimatedTouchableOpacity : View;
+
+  const getCardStyle = () => ({
+    ...styles.card,
+    backgroundColor: colors.surface,
+    shadowColor: colors.shadow,
+    borderColor: colors.border,
+  });
+
   const containerStyle = onPress
-    ? [styles.card, styles.pressableCard, style, animatedStyle]
-    : [styles.card, style];
+    ? [getCardStyle(), styles.pressableCard, style, animatedStyle]
+    : [getCardStyle(), style];
 
   return (
     <Container
@@ -53,8 +63,10 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, children, onPress, 
     >
       {(title || subtitle) && (
         <View style={styles.header}>
-          {title && <Text style={styles.title}>{title}</Text>}
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {title && <Text style={[styles.title, { color: colors.text }]}>{title}</Text>}
+          {subtitle && (
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+          )}
         </View>
       )}
       <View style={styles.content}>{children}</View>
@@ -64,11 +76,9 @@ export const Card: React.FC<CardProps> = ({ title, subtitle, children, onPress, 
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     marginVertical: 8,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -79,7 +89,6 @@ const styles = StyleSheet.create({
   },
   pressableCard: {
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   header: {
     marginBottom: 12,
@@ -87,12 +96,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1C1C1E',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#8E8E93',
     lineHeight: 20,
   },
   content: {

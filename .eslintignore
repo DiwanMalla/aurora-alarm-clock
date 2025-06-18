@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+dist/
+.next/
+coverage/
+.history/
+jest-setup.js
+jest.config.js
+eslint.config.js

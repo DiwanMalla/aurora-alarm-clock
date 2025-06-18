@@ -77,21 +77,27 @@ aurora-alarm-clock/
 ## Key Directories
 
 ### `/app` - Expo Router Screens
+
 Contains all application screens following Expo Router file-based routing conventions. The `(tabs)` directory creates a tab navigator with three main screens.
 
 ### `/components/ui` - UI Component Library
+
 Core reusable components with consistent styling, TypeScript interfaces, and comprehensive testing. All components follow the design system.
 
 ### `/constants` - Design System
+
 Centralized design tokens including colors, typography, spacing, and other design constants. Supports both light and dark themes.
 
 ### `/stores` - State Management
+
 Zustand stores for global application state with AsyncStorage persistence. Includes alarms, settings, and other app-wide state.
 
 ### `/hooks` - Custom Hooks
+
 React hooks for accessing stores, device capabilities, and other reusable logic patterns.
 
 ### `/docs` - Documentation
+
 Well-organized documentation including planning, progress tracking, and development guides. Keeps the root directory clean.
 
 ## File Naming Conventions
@@ -117,6 +123,7 @@ import { TimePicker } from '@/components/ui';
 ```
 
 This structure promotes:
+
 - **Scalability**: Easy to add new features and components
 - **Maintainability**: Clear separation of concerns
 - **Testability**: Co-located tests with source code

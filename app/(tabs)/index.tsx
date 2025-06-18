@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing } from '@/constants/Design';
+import { Typography, Spacing } from '@/constants/Design';
 import { useAppSettings, useAlarms } from '@/hooks/useStores';
+import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -21,6 +22,7 @@ export default function ClockScreen() {
   const [clockType, setClockType] = useState<'digital' | 'analog'>('digital');
   const { settings } = useAppSettings();
   const { alarms } = useAlarms();
+  const { colors } = useTheme();
 
   const fadeAnim = new Animated.Value(1);
 
@@ -77,12 +79,12 @@ export default function ClockScreen() {
   };
 
   const renderDigitalClock = () => (
-    <View style={styles.digitalClockContainer}>
-      <Animated.View style={[styles.timeContainer, { opacity: fadeAnim }]}>
-        <Text style={styles.digitalTime}>{formatTime(currentTime)}</Text>
-        <Text style={styles.digitalSeconds}>{formatSeconds(currentTime)}</Text>
+    <View style={styles(colors).digitalClockContainer}>
+      <Animated.View style={[styles(colors).timeContainer, { opacity: fadeAnim }]}>
+        <Text style={styles(colors).digitalTime}>{formatTime(currentTime)}</Text>
+        <Text style={styles(colors).digitalSeconds}>{formatSeconds(currentTime)}</Text>
       </Animated.View>
-      <Text style={styles.digitalDate}>{formatDate(currentTime)}</Text>
+      <Text style={styles(colors).digitalDate}>{formatDate(currentTime)}</Text>
     </View>
   );
 
@@ -97,14 +99,14 @@ export default function ClockScreen() {
     const secondAngle = seconds * 6 - 90;
 
     return (
-      <View style={styles.analogClockContainer}>
-        <View style={styles.clockFace}>
+      <View style={styles(colors).analogClockContainer}>
+        <View style={styles(colors).clockFace}>
           {/* Hour markers */}
           {Array.from({ length: 12 }, (_, i) => (
             <View
               key={i}
               style={[
-                styles.hourMarker,
+                styles(colors).hourMarker,
                 {
                   transform: [{ rotate: `${i * 30}deg` }, { translateY: -85 }],
                 },
@@ -115,89 +117,88 @@ export default function ClockScreen() {
           {/* Clock hands */}
           <Animated.View
             style={[
-              styles.clockHand,
-              styles.hourHand,
+              styles(colors).clockHand,
+              styles(colors).hourHand,
               { transform: [{ rotate: `${hourAngle}deg` }] },
             ]}
           />
           <Animated.View
             style={[
-              styles.clockHand,
-              styles.minuteHand,
+              styles(colors).clockHand,
+              styles(colors).minuteHand,
               { transform: [{ rotate: `${minuteAngle}deg` }] },
             ]}
           />
           <Animated.View
             style={[
-              styles.clockHand,
-              styles.secondHand,
+              styles(colors).clockHand,
+              styles(colors).secondHand,
               { transform: [{ rotate: `${secondAngle}deg` }] },
             ]}
           />
 
           {/* Center dot */}
-          <View style={styles.centerDot} />
+          <View style={styles(colors).centerDot} />
         </View>
 
-        <Text style={styles.analogDate}>{formatDate(currentTime)}</Text>
+        <Text style={styles(colors).analogDate}>{formatDate(currentTime)}</Text>
       </View>
     );
   };
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles(colors).container}>
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        style={styles(colors).scrollView}
+        contentContainerStyle={styles(colors).scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Clock</Text>
+        <View style={styles(colors).header}>
+          <Text style={styles(colors).headerTitle}>Clock</Text>
           <TouchableOpacity
-            style={styles.toggleButton}
+            style={styles(colors).toggleButton}
             onPress={() => setClockType(clockType === 'digital' ? 'analog' : 'digital')}
           >
             <Ionicons
               name={clockType === 'digital' ? 'time-outline' : 'phone-portrait-outline'}
               size={24}
-              color={Colors.light.primary}
+              color={colors.primary}
             />
           </TouchableOpacity>
         </View>
 
         {/* Main Clock Display */}
-        <View style={styles.clockSection}>
+        <View style={styles(colors).clockSection}>
           {clockType === 'digital' ? renderDigitalClock() : renderAnalogClock()}
         </View>
 
         {/* Next Alarm Info */}
         {nextAlarm && (
-          <View style={styles.nextAlarmCard}>
-            <View style={styles.nextAlarmHeader}>
-              <Ionicons name="alarm-outline" size={20} color={Colors.light.success} />
-              <Text style={styles.nextAlarmTitle}>Next Alarm</Text>
+          <View style={styles(colors).nextAlarmCard}>
+            <View style={styles(colors).nextAlarmHeader}>
+              <Ionicons name="alarm-outline" size={20} color={colors.success} />
+              <Text style={styles(colors).nextAlarmTitle}>Next Alarm</Text>
             </View>
-            <Text style={styles.nextAlarmTime}>{nextAlarm.time}</Text>
-            <Text style={styles.nextAlarmLabel}>{nextAlarm.label}</Text>
+            <Text style={styles(colors).nextAlarmTime}>{nextAlarm.time}</Text>
+            <Text style={styles(colors).nextAlarmLabel}>{nextAlarm.label}</Text>
           </View>
         )}
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <Ionicons name="add-circle-outline" size={32} color={Colors.light.primary} />
-            <Text style={styles.quickActionText}>Add Alarm</Text>
+        <View style={styles(colors).quickActions}>
+          <TouchableOpacity style={styles(colors).quickActionButton}>
+            <Ionicons name="add-circle-outline" size={32} color={colors.primary} />
+            <Text style={styles(colors).quickActionText}>Add Alarm</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickActionButton}>
-            <Ionicons name="timer-outline" size={32} color={Colors.light.accent} />
-            <Text style={styles.quickActionText}>Timer</Text>
+          <TouchableOpacity style={styles(colors).quickActionButton}>
+            <Ionicons name="timer-outline" size={32} color={colors.accent} />
+            <Text style={styles(colors).quickActionText}>Timer</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickActionButton}>
-            <Ionicons name="stopwatch-outline" size={32} color={Colors.light.secondary} />
-            <Text style={styles.quickActionText}>Stopwatch</Text>
+          <TouchableOpacity style={styles(colors).quickActionButton}>
+            <Ionicons name="stopwatch-outline" size={32} color={colors.secondary} />
+            <Text style={styles(colors).quickActionText}>Stopwatch</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -205,190 +206,191 @@ export default function ClockScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: Spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: {
-    ...Typography.title1,
-    color: Colors.light.text,
-  },
-  toggleButton: {
-    padding: Spacing.sm,
-    borderRadius: 20,
-    backgroundColor: Colors.light.surface,
-  },
-  clockSection: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
-  },
+const styles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: Spacing.xl,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: {
+      ...Typography.title1,
+      color: colors.text,
+    },
+    toggleButton: {
+      padding: Spacing.sm,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+    },
+    clockSection: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: Spacing.xl,
+    },
 
-  // Digital Clock Styles
-  digitalClockContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: Spacing.sm,
-  },
-  digitalTime: {
-    fontSize: 64,
-    fontWeight: '200',
-    color: Colors.light.text,
-    letterSpacing: -2,
-  },
-  digitalSeconds: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: Colors.light.textSecondary,
-    marginLeft: Spacing.xs,
-  },
-  digitalDate: {
-    ...Typography.body,
-    fontWeight: '500',
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-  },
+    // Digital Clock Styles
+    digitalClockContainer: {
+      alignItems: 'center',
+      paddingVertical: Spacing.xl,
+    },
+    timeContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      marginBottom: Spacing.sm,
+    },
+    digitalTime: {
+      fontSize: 64,
+      fontWeight: '200',
+      color: colors.text,
+      letterSpacing: -2,
+    },
+    digitalSeconds: {
+      fontSize: 24,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginLeft: Spacing.xs,
+    },
+    digitalDate: {
+      ...Typography.body,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
 
-  // Analog Clock Styles
-  analogClockContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
-  },
-  clockFace: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Colors.light.clockFace,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: Colors.light.border,
-    marginBottom: Spacing.lg,
-    elevation: 4,
-    shadowColor: Colors.light.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  hourMarker: {
-    position: 'absolute',
-    width: 3,
-    height: 15,
-    backgroundColor: Colors.light.clockHands,
-    borderRadius: 2,
-  },
-  clockHand: {
-    position: 'absolute',
-    backgroundColor: Colors.light.clockHands,
-    borderRadius: 2,
-    transformOrigin: 'center bottom',
-  },
-  hourHand: {
-    width: 4,
-    height: 50,
-    bottom: 100,
-  },
-  minuteHand: {
-    width: 3,
-    height: 70,
-    bottom: 100,
-  },
-  secondHand: {
-    width: 1,
-    height: 80,
-    bottom: 100,
-    backgroundColor: Colors.light.error,
-  },
-  centerDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.light.clockHands,
-  },
-  analogDate: {
-    ...Typography.body,
-    fontWeight: '500',
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-  },
+    // Analog Clock Styles
+    analogClockContainer: {
+      alignItems: 'center',
+      paddingVertical: Spacing.xl,
+    },
+    clockFace: {
+      width: 200,
+      height: 200,
+      borderRadius: 100,
+      backgroundColor: colors.clockFace,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 4,
+      borderColor: colors.border,
+      marginBottom: Spacing.lg,
+      elevation: 4,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+    },
+    hourMarker: {
+      position: 'absolute',
+      width: 3,
+      height: 15,
+      backgroundColor: colors.clockHands,
+      borderRadius: 2,
+    },
+    clockHand: {
+      position: 'absolute',
+      backgroundColor: colors.clockHands,
+      borderRadius: 2,
+      transformOrigin: 'center bottom',
+    },
+    hourHand: {
+      width: 4,
+      height: 50,
+      bottom: 100,
+    },
+    minuteHand: {
+      width: 3,
+      height: 70,
+      bottom: 100,
+    },
+    secondHand: {
+      width: 1,
+      height: 80,
+      bottom: 100,
+      backgroundColor: colors.error,
+    },
+    centerDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: colors.clockHands,
+    },
+    analogDate: {
+      ...Typography.body,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
 
-  // Next Alarm Styles
-  nextAlarmCard: {
-    backgroundColor: Colors.light.surface,
-    margin: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: 16,
-    elevation: 2,
-    shadowColor: Colors.light.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  nextAlarmHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  nextAlarmTitle: {
-    ...Typography.headline,
-    fontWeight: '600',
-    color: Colors.light.success,
-    marginLeft: Spacing.sm,
-  },
-  nextAlarmTime: {
-    ...Typography.title2,
-    color: Colors.light.text,
-    marginBottom: Spacing.xs,
-  },
-  nextAlarmLabel: {
-    ...Typography.footnote,
-    color: Colors.light.textSecondary,
-  },
+    // Next Alarm Styles
+    nextAlarmCard: {
+      backgroundColor: colors.surface,
+      margin: Spacing.lg,
+      padding: Spacing.lg,
+      borderRadius: 16,
+      elevation: 2,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    nextAlarmHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    nextAlarmTitle: {
+      ...Typography.headline,
+      fontWeight: '600',
+      color: colors.success,
+      marginLeft: Spacing.sm,
+    },
+    nextAlarmTime: {
+      ...Typography.title2,
+      color: colors.text,
+      marginBottom: Spacing.xs,
+    },
+    nextAlarmLabel: {
+      ...Typography.footnote,
+      color: colors.textSecondary,
+    },
 
-  // Quick Actions Styles
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-  },
-  quickActionButton: {
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: 12,
-    backgroundColor: Colors.light.surface,
-    minWidth: 80,
-    elevation: 1,
-    shadowColor: Colors.light.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  quickActionText: {
-    ...Typography.caption1,
-    fontWeight: '500',
-    color: Colors.light.textSecondary,
-    marginTop: Spacing.xs,
-    textAlign: 'center',
-  },
-});
+    // Quick Actions Styles
+    quickActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: Spacing.lg,
+      marginTop: Spacing.lg,
+    },
+    quickActionButton: {
+      alignItems: 'center',
+      padding: Spacing.md,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+      minWidth: 80,
+      elevation: 1,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+    },
+    quickActionText: {
+      ...Typography.caption1,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginTop: Spacing.xs,
+      textAlign: 'center',
+    },
+  });
