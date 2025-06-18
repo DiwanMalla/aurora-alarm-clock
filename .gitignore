@@ -2,6 +2,9 @@
 
 # dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Expo
 .expo/
@@ -32,6 +35,51 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
+
+# Testing
+coverage/
+__snapshots__/
+*.lcov
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# History files (VS Code history extension)
+.history/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Build outputs
+build/
+dist/
+
+# Package lock files (optional - you might want to include these)
+# package-lock.json
+# yarn.lock
+
+# Environment and config files with sensitive data
+config/local.js
+config/production.js
+
+# Audio files for development (if large)
+# assets/audio/dev/
+# assets/audio/temp/
+
+# Documentation drafts
+docs/drafts/
+*.draft.md
