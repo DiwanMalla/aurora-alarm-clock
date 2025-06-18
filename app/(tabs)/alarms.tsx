@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AlarmCard, Label } from '@/components/ui';
@@ -56,7 +57,10 @@ export default function AlarmsScreen() {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top']}
+    >
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -94,9 +98,20 @@ export default function AlarmsScreen() {
             <Label size="large" weight="bold" style={{ color: colors.text }}>
               Your Alarms
             </Label>
-            <Label size="small" style={{ color: colors.textSecondary }}>
-              {alarms.length} alarm{alarms.length !== 1 ? 's' : ''}
-            </Label>
+            <View style={styles.headerRight}>
+              <Label size="small" style={{ color: colors.textSecondary }}>
+                {alarms.length} alarm{alarms.length !== 1 ? 's' : ''}
+              </Label>
+              <Pressable
+                style={[styles.addButton, { backgroundColor: colors.primary }]}
+                onPress={() => {
+                  // TODO: Navigate to add alarm screen
+                  Alert.alert('Add Alarm', 'Add new alarm functionality coming soon!');
+                }}
+              >
+                <Ionicons name="add" size={20} color={colors.background} />
+              </Pressable>
+            </View>
           </View>
 
           {sortedAlarms.length === 0 ? (
@@ -177,7 +192,7 @@ export default function AlarmsScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -190,6 +205,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
+    paddingTop: Spacing.xl,
   },
   nextAlarmCard: {
     padding: Spacing.md,
@@ -209,6 +225,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.md,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyState: {
     alignItems: 'center',

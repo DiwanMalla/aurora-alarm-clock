@@ -21,22 +21,13 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false, // Hide all headers/page titles
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 1,
           borderTopColor: colors.border,
           paddingBottom: Platform.OS === 'ios' ? 20 : 10,
           height: Platform.OS === 'ios' ? 85 : 65,
-        },
-        headerStyle: {
-          backgroundColor: colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        },
-        headerTintColor: colors.text,
-        headerTitleStyle: {
-          fontWeight: '600',
         },
       }}
     >
@@ -46,7 +37,6 @@ export default function TabLayout() {
         options={{
           title: 'Clock',
           tabBarIcon: ({ color }) => <TabBarIcon name="time-outline" color={color} />,
-          headerTitle: 'Aurora Clock',
         }}
       />
 
@@ -56,24 +46,6 @@ export default function TabLayout() {
         options={{
           title: 'Alarms',
           tabBarIcon: ({ color }) => <TabBarIcon name="alarm-outline" color={color} />,
-          headerTitle: 'Alarms',
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <Ionicons
-                    name="add"
-                    size={24}
-                    color={colors.primary}
-                    style={{
-                      marginRight: 15,
-                      opacity: pressed ? 0.5 : 1,
-                    }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
 
@@ -83,7 +55,6 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => <TabBarIcon name="settings-outline" color={color} />,
-          headerTitle: 'Settings',
         }}
       />
 
@@ -94,7 +65,6 @@ export default function TabLayout() {
           href: __DEV__ ? '/demo' : null,
           title: 'Demo',
           tabBarIcon: ({ color }) => <TabBarIcon name="flask-outline" color={color} />,
-          headerTitle: 'Demo',
         }}
       />
     </Tabs>
