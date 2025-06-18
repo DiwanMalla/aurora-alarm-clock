@@ -1,57 +1,77 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Ionicons } from '@expo/vector-icons';
 import { Link, Tabs } from 'expo-router';
 import { Pressable, Platform } from 'react-native';
 
-import Colors from '@/constants/Colors';
+import { Colors } from '@/constants/Design';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+// Tab bar icon component
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: React.ComponentProps<typeof Ionicons>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <Ionicons size={24} style={{ marginBottom: -3 }} {...props} />;
 }
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         headerShown: useClientOnlyValue(false, true),
         tabBarStyle: {
-          backgroundColor: Colors[colorScheme ?? 'light'].background,
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: Colors[colorScheme ?? 'light'].tabIconDefault + '20',
+          borderTopColor: colors.border,
           paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          height: Platform.OS === 'ios' ? 90 : 70,
+          height: Platform.OS === 'ios' ? 85 : 65,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+        headerStyle: {
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          fontWeight: '600',
         },
       }}
     >
+      {/* Clock/Home Tab */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          title: 'Clock',
+          tabBarIcon: ({ color }) => <TabBarIcon name="time-outline" color={color} />,
+          headerTitle: 'Aurora Clock',
+        }}
+      />
+      
+      {/* Alarms Tab */}
+      <Tabs.Screen
+        name="alarms"
+        options={{
+          title: 'Alarms',
+          tabBarIcon: ({ color }) => <TabBarIcon name="alarm-outline" color={color} />,
+          headerTitle: 'Alarms',
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
                 {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+                  <Ionicons
+                    name="add"
+                    size={24}
+                    color={colors.primary}
+                    style={{ 
+                      marginRight: 15, 
+                      opacity: pressed ? 0.5 : 1 
+                    }}
                   />
                 )}
               </Pressable>
@@ -59,11 +79,25 @@ export default function TabLayout() {
           ),
         }}
       />
+      
+      {/* Settings Tab */}
       <Tabs.Screen
-        name="two"
+        name="settings"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <TabBarIcon name="settings-outline" color={color} />,
+          headerTitle: 'Settings',
+        }}
+      />
+      
+      {/* Hide demo tab from production */}
+      <Tabs.Screen
+        name="demo"
+        options={{
+          href: __DEV__ ? '/demo' : null,
+          title: 'Demo',
+          tabBarIcon: ({ color }) => <TabBarIcon name="flask-outline" color={color} />,
+          headerTitle: 'Demo',
         }}
       />
     </Tabs>

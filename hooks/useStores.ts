@@ -50,7 +50,7 @@ export const useAlarmUtils = () => {
 
 // Settings store hooks
 export const useAppSettings = () => {
-  const settings = useSettingsStore((state) => state);
+  const settings = useSettingsStore((state) => state.settings);
   const resetToDefaults = useSettingsStore((state) => state.resetToDefaults);
   const exportSettings = useSettingsStore((state) => state.exportSettings);
   const importSettings = useSettingsStore((state) => state.importSettings);
