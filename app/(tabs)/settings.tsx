@@ -1,17 +1,15 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing } from '@/constants/Design';
 import { Switch } from '@/components/ui';
-import { useAppSettings, useTheme, useNotificationSettings, useAudioSettings } from '@/hooks/useStores';
+import {
+  useAppSettings,
+  useTheme,
+  useNotificationSettings,
+  useAudioSettings,
+} from '@/hooks/useStores';
 
 interface SettingsItemProps {
   title: string;
@@ -46,7 +44,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
           {subtitle && <Text style={styles.settingsSubtitle}>{subtitle}</Text>}
         </View>
       </View>
-      
+
       <View style={styles.settingsItemRight}>
         {rightComponent}
         {showChevron && onPress && (
@@ -71,9 +69,7 @@ const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) =>
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionContent}>
-        {children}
-      </View>
+      <View style={styles.sectionContent}>{children}</View>
     </View>
   );
 };
@@ -85,36 +81,32 @@ export default function SettingsScreen() {
   const { defaultAlarmVolume, fadeInDuration, defaultSnoozeTime } = useAudioSettings();
 
   const handleThemePress = () => {
-    Alert.alert(
-      'Theme',
-      'Choose your preferred theme',
-      [
-        { text: 'Light', onPress: () => setTheme('light') },
-        { text: 'Dark', onPress: () => setTheme('dark') },
-        { text: 'Auto', onPress: () => setTheme('auto') },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Theme', 'Choose your preferred theme', [
+      { text: 'Light', onPress: () => setTheme('light') },
+      { text: 'Dark', onPress: () => setTheme('dark') },
+      { text: 'Auto', onPress: () => setTheme('auto') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const handleTimeFormatPress = () => {
-    Alert.alert(
-      'Time Format',
-      'Choose your preferred time format',
-      [
-        { text: '12 Hour', onPress: () => {} }, // TODO: Implement
-        { text: '24 Hour', onPress: () => {} }, // TODO: Implement
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Time Format', 'Choose your preferred time format', [
+      { text: '12 Hour', onPress: () => {} }, // TODO: Implement
+      { text: '24 Hour', onPress: () => {} }, // TODO: Implement
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const getThemeDisplayText = () => {
     switch (theme) {
-      case 'light': return 'Light';
-      case 'dark': return 'Dark';
-      case 'auto': return 'Auto';
-      default: return 'Light';
+      case 'light':
+        return 'Light';
+      case 'dark':
+        return 'Dark';
+      case 'auto':
+        return 'Auto';
+      default:
+        return 'Light';
     }
   };
 
@@ -159,9 +151,7 @@ export default function SettingsScreen() {
             rightComponent={
               <Switch
                 value={notifications.alarmNotifications}
-                onValueChange={(value) =>
-                  updateNotificationSettings({ alarmNotifications: value })
-                }
+                onValueChange={(value) => updateNotificationSettings({ alarmNotifications: value })}
               />
             }
             showChevron={false}
@@ -173,9 +163,7 @@ export default function SettingsScreen() {
             rightComponent={
               <Switch
                 value={notifications.bedtimeReminder}
-                onValueChange={(value) =>
-                  updateNotificationSettings({ bedtimeReminder: value })
-                }
+                onValueChange={(value) => updateNotificationSettings({ bedtimeReminder: value })}
               />
             }
             showChevron={false}
@@ -187,9 +175,7 @@ export default function SettingsScreen() {
             rightComponent={
               <Switch
                 value={notifications.sleepInsights}
-                onValueChange={(value) =>
-                  updateNotificationSettings({ sleepInsights: value })
-                }
+                onValueChange={(value) => updateNotificationSettings({ sleepInsights: value })}
               />
             }
             showChevron={false}
@@ -201,9 +187,7 @@ export default function SettingsScreen() {
             rightComponent={
               <Switch
                 value={notifications.weatherAlerts}
-                onValueChange={(value) =>
-                  updateNotificationSettings({ weatherAlerts: value })
-                }
+                onValueChange={(value) => updateNotificationSettings({ weatherAlerts: value })}
               />
             }
             showChevron={false}

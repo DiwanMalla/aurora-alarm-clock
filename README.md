@@ -1,53 +1,117 @@
-# Clock - React Native Mobile App
+# 🌅 Aurora Clock
 
-A modern React Native mobile application built with Expo Router, TypeScript, and cutting-edge mobile development patterns.
+A beautiful, modern alarm clock app built with React Native and Expo.
 
-## 🚀 Features
+## � Features
 
-- **Modern Architecture**: Built with Expo Router for file-based navigation
-- **TypeScript**: Full type safety throughout the application
-- **Smooth Animations**: 60fps animations using React Native Reanimated
-- **Haptic Feedback**: Platform-specific haptic feedback for enhanced UX
-- **Responsive Design**: Adapts to different screen sizes and orientations
-- **Touch-First**: Optimized for mobile touch interactions
-- **Custom Components**: Reusable animated buttons, cards, and loading spinners
-- **Persistent Storage**: AsyncStorage integration with custom hooks
-- **Device Orientation**: Real-time orientation and screen size detection
+- **Digital & Analog Clocks** - Toggle between beautiful clock displays
+- **Smart Alarms** - Intelligent alarm management with snooze and custom sounds
+- **Weather Integration** - Weather-aware alarm adjustments
+- **Health Tracking** - Sleep insights and bedtime reminders
+- **Smart Home** - Integration with Philips Hue and Google Home
+- **Dark Mode** - Beautiful themes for day and night
 
-## 📱 Technologies Used
+## 🚀 Quick Start
 
-- **React Native**: Core mobile framework
-- **Expo Router**: File-based routing with tabs navigation
-- **TypeScript**: Strict typing for all components and utilities
-- **Expo Vector Icons**: Icon library for consistent UI
-- **React Native Reanimated**: Smooth animations and transitions
-- **React Native Gesture Handler**: Advanced gesture recognition
-- **AsyncStorage**: Persistent data storage
-- **Expo Haptics**: Platform-specific haptic feedback
+```bash
+# Install dependencies
+npm install
 
-## 🏗️ Project Structure
+# Start the development server
+npm start
+
+# Run on iOS simulator
+npm run ios
+
+# Run on Android emulator
+npm run android
+```
+
+## 🏗️ Tech Stack
+
+- **React Native** with Expo Router
+- **TypeScript** for type safety
+- **Zustand** for state management
+- **React Native Reanimated** for smooth animations
+- **AsyncStorage** for data persistence
+- **Jest & Testing Library** for testing
+
+## 📁 Project Structure
 
 ```
-/app/                 # App routes (Expo Router convention)
-  /(tabs)/            # Tab navigation screens
-    index.tsx         # Home screen
-    two.tsx           # Explore screen
-  _layout.tsx         # Root layout
-  modal.tsx           # Modal screen
-/components/          # Reusable UI components
-  AnimatedButton.tsx  # Animated button with haptic feedback
-  Card.tsx            # Flexible card component
-  LoadingSpinner.tsx  # Animated loading spinner
-/hooks/               # Custom React hooks
-  useKeyboard.ts      # Keyboard visibility detection
-  useAsyncStorage.ts  # Persistent storage hook
-  useDeviceOrientation.ts # Device orientation tracking
-/lib/                 # Utility functions
-  haptics.ts          # Haptic feedback utilities
-  utils.ts            # General utility functions
-/types/               # TypeScript type definitions
-  index.ts            # Common types
-/constants/           # App constants and configuration
+├── app/                    # Expo Router screens
+│   └── (tabs)/            # Tab navigation screens
+├── components/            # Reusable UI components
+│   └── ui/               # Core UI components
+├── constants/            # Design system and constants
+├── hooks/               # Custom React hooks
+├── stores/              # Zustand stores
+├── docs/                # Project documentation
+│   ├── planning/        # Roadmaps and task lists
+│   ├── progress/        # Completion summaries
+│   └── development/     # Development guides
+└── __tests__/           # Test files
+```
+
+## 📚 Documentation
+
+- **[Roadmap](docs/planning/ROADMAP.md)** - Complete development roadmap
+- **[Tasks](docs/planning/TASKS.md)** - Current and upcoming tasks
+- **[Progress](docs/progress/)** - Weekly completion summaries
+- **[Development Guide](docs/development/)** - Setup and development guidelines
+
+## 🎨 Design System
+
+Aurora Clock follows a comprehensive design system with:
+- Consistent color palette for light and dark themes
+- Typography scale following iOS Human Interface Guidelines
+- Standardized spacing and component sizing
+- Smooth animations and transitions
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run linting
+npm run lint
+
+# Format code
+npm run format
+```
+
+## 📱 Development Status
+
+- ✅ **Week 1**: Foundation, design system, core components
+- ✅ **Week 2**: Navigation, clock display, settings screen
+- 🚧 **Week 3**: Advanced alarm features and gestures
+- 📅 **Week 4**: Smart features and integrations
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Expo](https://expo.dev/)
+- Icons by [Expo Vector Icons](https://icons.expo.fyi/)
+- Animations by [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+
+---
+
+**Aurora Clock** - Wake up to a beautiful sunrise every day 🌅
 /assets/              # Images, fonts, and other assets
 ```
 

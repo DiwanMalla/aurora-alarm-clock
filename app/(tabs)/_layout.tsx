@@ -8,10 +8,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 // Tab bar icon component
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
-}) {
+function TabBarIcon(props: { name: React.ComponentProps<typeof Ionicons>['name']; color: string }) {
   return <Ionicons size={24} style={{ marginBottom: -3 }} {...props} />;
 }
 
@@ -52,7 +49,7 @@ export default function TabLayout() {
           headerTitle: 'Aurora Clock',
         }}
       />
-      
+
       {/* Alarms Tab */}
       <Tabs.Screen
         name="alarms"
@@ -68,9 +65,9 @@ export default function TabLayout() {
                     name="add"
                     size={24}
                     color={colors.primary}
-                    style={{ 
-                      marginRight: 15, 
-                      opacity: pressed ? 0.5 : 1 
+                    style={{
+                      marginRight: 15,
+                      opacity: pressed ? 0.5 : 1,
                     }}
                   />
                 )}
@@ -79,7 +76,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      
+
       {/* Settings Tab */}
       <Tabs.Screen
         name="settings"
@@ -89,7 +86,7 @@ export default function TabLayout() {
           headerTitle: 'Settings',
         }}
       />
-      
+
       {/* Hide demo tab from production */}
       <Tabs.Screen
         name="demo"

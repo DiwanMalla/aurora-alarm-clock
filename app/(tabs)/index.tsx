@@ -21,7 +21,7 @@ export default function ClockScreen() {
   const [clockType, setClockType] = useState<'digital' | 'analog'>('digital');
   const { settings } = useAppSettings();
   const { alarms } = useAlarms();
-  
+
   const fadeAnim = new Animated.Value(1);
 
   // Update time every second
@@ -50,13 +50,13 @@ export default function ClockScreen() {
       ])
     );
     pulseAnimation.start();
-    
+
     return () => pulseAnimation.stop();
   }, [fadeAnim]);
 
   // Get next alarm
   const nextAlarm = alarms
-    .filter(alarm => alarm.enabled)
+    .filter((alarm) => alarm.enabled)
     .sort((a, b) => {
       const timeA = new Date(`1970-01-01T${a.time}:00`).getTime();
       const timeB = new Date(`1970-01-01T${b.time}:00`).getTime();
@@ -79,16 +79,10 @@ export default function ClockScreen() {
   const renderDigitalClock = () => (
     <View style={styles.digitalClockContainer}>
       <Animated.View style={[styles.timeContainer, { opacity: fadeAnim }]}>
-        <Text style={styles.digitalTime}>
-          {formatTime(currentTime)}
-        </Text>
-        <Text style={styles.digitalSeconds}>
-          {formatSeconds(currentTime)}
-        </Text>
+        <Text style={styles.digitalTime}>{formatTime(currentTime)}</Text>
+        <Text style={styles.digitalSeconds}>{formatSeconds(currentTime)}</Text>
       </Animated.View>
-      <Text style={styles.digitalDate}>
-        {formatDate(currentTime)}
-      </Text>
+      <Text style={styles.digitalDate}>{formatDate(currentTime)}</Text>
     </View>
   );
 
@@ -98,9 +92,9 @@ export default function ClockScreen() {
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
 
-    const hourAngle = (hours * 30) + (minutes * 0.5) - 90;
-    const minuteAngle = (minutes * 6) - 90;
-    const secondAngle = (seconds * 6) - 90;
+    const hourAngle = hours * 30 + minutes * 0.5 - 90;
+    const minuteAngle = minutes * 6 - 90;
+    const secondAngle = seconds * 6 - 90;
 
     return (
       <View style={styles.analogClockContainer}>
@@ -112,15 +106,12 @@ export default function ClockScreen() {
               style={[
                 styles.hourMarker,
                 {
-                  transform: [
-                    { rotate: `${i * 30}deg` },
-                    { translateY: -85 },
-                  ],
+                  transform: [{ rotate: `${i * 30}deg` }, { translateY: -85 }],
                 },
               ]}
             />
           ))}
-          
+
           {/* Clock hands */}
           <Animated.View
             style={[
@@ -143,14 +134,12 @@ export default function ClockScreen() {
               { transform: [{ rotate: `${secondAngle}deg` }] },
             ]}
           />
-          
+
           {/* Center dot */}
           <View style={styles.centerDot} />
         </View>
-        
-        <Text style={styles.analogDate}>
-          {formatDate(currentTime)}
-        </Text>
+
+        <Text style={styles.analogDate}>{formatDate(currentTime)}</Text>
       </View>
     );
   };
@@ -200,12 +189,12 @@ export default function ClockScreen() {
             <Ionicons name="add-circle-outline" size={32} color={Colors.light.primary} />
             <Text style={styles.quickActionText}>Add Alarm</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.quickActionButton}>
             <Ionicons name="timer-outline" size={32} color={Colors.light.accent} />
             <Text style={styles.quickActionText}>Timer</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.quickActionButton}>
             <Ionicons name="stopwatch-outline" size={32} color={Colors.light.secondary} />
             <Text style={styles.quickActionText}>Stopwatch</Text>
@@ -250,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.xl,
   },
-  
+
   // Digital Clock Styles
   digitalClockContainer: {
     alignItems: 'center',
@@ -279,7 +268,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     textAlign: 'center',
   },
-  
+
   // Analog Clock Styles
   analogClockContainer: {
     alignItems: 'center',
@@ -342,7 +331,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     textAlign: 'center',
   },
-  
+
   // Next Alarm Styles
   nextAlarmCard: {
     backgroundColor: Colors.light.surface,
@@ -375,7 +364,7 @@ const styles = StyleSheet.create({
     ...Typography.footnote,
     color: Colors.light.textSecondary,
   },
-  
+
   // Quick Actions Styles
   quickActions: {
     flexDirection: 'row',
