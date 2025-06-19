@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../constants/Design';
-import { useTheme as useThemeStore } from './useStores';
+import { useThemeSettings } from './useStores';
 
 interface ThemeContextType {
   colors: typeof Colors.light;
@@ -18,7 +18,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const { theme, setTheme } = useThemeStore();
+  const { theme, setTheme } = useThemeSettings();
 
   // Determine the effective theme
   const effectiveTheme =

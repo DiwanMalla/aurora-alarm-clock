@@ -10,8 +10,8 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Design';
-import { useColorScheme } from '../useColorScheme';
+import { Typography, Spacing, BorderRadius } from '../../constants/Design';
+import { useTheme } from '../../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ModalProps {
@@ -39,8 +39,7 @@ export const Modal: React.FC<ModalProps> = ({
   style,
   testID = 'modal',
 }) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(screenHeight);

@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TimePicker, AlarmCard, Modal, TextInput, Label } from '../components/ui';
-import { useAlarmManagement, useTheme } from '../hooks/useStores';
+import { useAlarmManagement, useThemeSettings } from '../hooks/useStores';
 import { Colors, Spacing } from '../constants/Design';
 import { useColorScheme } from '../components/useColorScheme';
 import { Alarm } from '../stores/alarmStore';
@@ -14,8 +14,8 @@ export default function AlarmDemoScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
 
-  const { alarms, addAlarm, updateAlarm, deleteAlarm, toggleAlarm } = useAlarmManagement();
-  const { theme, setTheme } = useTheme();
+  const { alarms, addAlarm, updateAlarm, deleteAlarm } = useAlarmManagement();
+  const { theme, setTheme } = useThemeSettings();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedTime, setSelectedTime] = useState(new Date());
@@ -147,8 +147,8 @@ export default function AlarmDemoScreen() {
 
           {alarms.length === 0 ? (
             <View style={styles.emptyState}>
-              <Label size="medium" style={{ color: colors.textSecondary, textAlign: 'center' }}>
-                No alarms yet. Tap "Add Alarm" to create your first alarm.
+              <Label size="medium" style={[styles.emptyText, { color: colors.textSecondary }]}>
+                No alarms yet. Tap &quot;Add Alarm&quot; to create your first alarm.
               </Label>
             </View>
           ) : (
@@ -257,6 +257,9 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: Spacing.xl,
     alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
   },
   modalContent: {
     minHeight: 300,

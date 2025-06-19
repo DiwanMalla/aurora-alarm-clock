@@ -103,7 +103,7 @@ export default function ExploreScreen() {
 
   const handleLoadingTest = () => {
     setLoading(true);
-    setTimeout(() => {
+    (globalThis as typeof globalThis).setTimeout(() => {
       setLoading(false);
       hapticFeedback.success();
       Alert.alert('Complete!', 'Loading test completed successfully');

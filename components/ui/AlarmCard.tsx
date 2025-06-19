@@ -13,6 +13,7 @@ import Animated, {
 import { PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { Typography, Spacing, BorderRadius } from '../../constants/Design';
 import { useTheme } from '../../hooks/useTheme';
+import { useTimeFormat } from '../../hooks/useTimeFormat';
 import { Alarm } from '../../stores/alarmStore';
 import { Switch } from './Switch';
 
@@ -25,7 +26,7 @@ interface AlarmCardProps {
   onPress: (alarm: Alarm) => void;
   onDelete: (id: string) => void;
   onSnooze?: (id: string) => void;
-  style?: any;
+  style?: Record<string, unknown>;
   testID?: string;
 }
 
@@ -39,6 +40,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
   testID = 'alarm-card',
 }) => {
   const { colors } = useTheme();
+  const { formatAlarmTime } = useTimeFormat();
 
   // Gesture handling
   const translateX = useSharedValue(0);
@@ -94,19 +96,6 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
       backgroundColor,
     };
   });
-
-  // Format time for display
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-
-    return date.toLocaleTimeString([], {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
 
   // Get repeat days string
   const getRepeatDays = () => {
@@ -167,7 +156,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
                   ]}
                   testID={`${testID}-time`}
                 >
-                  {formatTime(alarm.time)}
+                  {formatAlarmTime(alarm.time)}
                 </Text>
 
                 {/* Label */}

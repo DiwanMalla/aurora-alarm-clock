@@ -51,19 +51,21 @@ export const useAlarmUtils = () => {
 // Settings store hooks
 export const useAppSettings = () => {
   const settings = useSettingsStore((state) => state.settings);
+  const setTimeFormat = useSettingsStore((state) => state.setTimeFormat);
   const resetToDefaults = useSettingsStore((state) => state.resetToDefaults);
   const exportSettings = useSettingsStore((state) => state.exportSettings);
   const importSettings = useSettingsStore((state) => state.importSettings);
 
   return {
     settings,
+    setTimeFormat,
     resetToDefaults,
     exportSettings,
     importSettings,
   };
 };
 
-export const useTheme = () => {
+export const useThemeSettings = () => {
   const theme = useSettingsStore((state) => state.settings.theme);
   const setTheme = useSettingsStore((state) => state.setTheme);
 

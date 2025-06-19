@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, Platform, Pressable, Animated } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Design';
-import { useColorScheme } from '../useColorScheme';
+import { Typography, Spacing, BorderRadius } from '../../constants/Design';
+import { useTheme } from '../../hooks/useTheme';
 
 interface TimePickerProps {
   value: Date;
@@ -28,8 +28,7 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
   visibleItems,
   testID,
 }) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
   const scrollY = new Animated.Value(selectedIndex * itemHeight);
 
   const handlePress = (index: number) => {
@@ -100,8 +99,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   style,
   testID = 'time-picker',
 }) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
 
   const [hours, setHours] = useState(value.getHours());
   const [minutes, setMinutes] = useState(value.getMinutes());
@@ -198,7 +196,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.light.shadow,
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 8,

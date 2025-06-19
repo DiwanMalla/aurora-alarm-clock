@@ -1,20 +1,23 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, Platform } from 'react-native';
+import { Tabs } from 'expo-router';
+import { Platform, StyleSheet } from 'react-native';
 
-import { Colors } from '@/constants/Design';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useTheme } from '@/hooks/useTheme';
+
+const styles = StyleSheet.create({
+  tabIcon: {
+    marginBottom: -3,
+  },
+});
 
 // Tab bar icon component
 function TabBarIcon(props: { name: React.ComponentProps<typeof Ionicons>['name']; color: string }) {
-  return <Ionicons size={24} style={{ marginBottom: -3 }} {...props} />;
+  return <Ionicons size={24} style={styles.tabIcon} {...props} />;
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useTheme();
 
   return (
     <Tabs
@@ -55,16 +58,6 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => <TabBarIcon name="settings-outline" color={color} />,
-        }}
-      />
-
-      {/* Hide demo tab from production */}
-      <Tabs.Screen
-        name="demo"
-        options={{
-          href: __DEV__ ? '/demo' : null,
-          title: 'Demo',
-          tabBarIcon: ({ color }) => <TabBarIcon name="flask-outline" color={color} />,
         }}
       />
     </Tabs>

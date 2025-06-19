@@ -21,6 +21,7 @@ export const Colors = {
     text: '#1C1C1E',
     textSecondary: '#8E8E93',
     textTertiary: '#C7C7CC',
+    white: '#FFFFFF',
 
     // Interactive colors
     border: '#E5E5EA',
@@ -63,6 +64,7 @@ export const Colors = {
     text: '#FFFFFF',
     textSecondary: '#8E8E93',
     textTertiary: '#48484A',
+    white: '#FFFFFF',
 
     // Interactive colors
     border: '#38383A',

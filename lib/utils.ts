@@ -30,6 +30,37 @@ export const formatTime = (date: Date, format: '12h' | '24h' = '12h'): string =>
   });
 };
 
+export const formatTimeString = (timeString: string, format: '12h' | '24h' = '12h'): string => {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+
+  return formatTime(date, format);
+};
+
+export const parseTimeString = (timeString: string): { hours: number; minutes: number } => {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return { hours, minutes };
+};
+
+export const formatCurrentTime = (
+  format: '12h' | '24h' = '12h',
+  includeSeconds: boolean = false
+): string => {
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    hour12: format === '12h',
+    hour: '2-digit',
+    minute: '2-digit',
+  };
+
+  if (includeSeconds) {
+    options.second = '2-digit';
+  }
+
+  return now.toLocaleTimeString('en-US', options);
+};
+
 export const getRelativeTime = (date: Date): string => {
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
@@ -49,11 +80,11 @@ export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
+  let timeoutId: ReturnType<typeof globalThis.setTimeout>;
 
   return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
+    (globalThis as typeof globalThis).clearTimeout(timeoutId);
+    timeoutId = (globalThis as typeof globalThis).setTimeout(() => func(...args), delay);
   };
 };
 

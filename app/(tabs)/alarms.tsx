@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AlarmCard, Label } from '@/components/ui';
+import { router } from 'expo-router';
 import { useAlarmManagement } from '@/hooks/useStores';
 import { Spacing } from '@/constants/Design';
 import { useTheme } from '@/hooks/useTheme';
@@ -13,7 +14,7 @@ import { Alarm } from '@/stores/alarmStore';
 export default function AlarmsScreen() {
   const { colors, isDark } = useTheme();
 
-  const { alarms, updateAlarm, deleteAlarm, getNextAlarm } = useAlarmManagement();
+  const { alarms, updateAlarm, deleteAlarm, getNextAlarm, addAlarm } = useAlarmManagement();
   const nextAlarm = getNextAlarm();
 
   const handleAlarmPress = (alarm: Alarm) => {
@@ -21,7 +22,12 @@ export default function AlarmsScreen() {
       'Alarm Details',
       `Label: ${alarm.label}\nTime: ${alarm.time}\nEnabled: ${alarm.enabled ? 'Yes' : 'No'}`,
       [
-        { text: 'Edit', onPress: () => {} },
+        {
+          text: 'Edit',
+          onPress: () => {
+            router.push('/alarm-creation');
+          },
+        },
         { text: 'Cancel', style: 'cancel' },
       ]
     );
@@ -42,7 +48,7 @@ export default function AlarmsScreen() {
     ]);
   };
 
-  const handleAlarmSnooze = (id: string) => {
+  const handleAlarmSnooze = (_id: string) => {
     Alert.alert('Snooze Alarm', 'Alarm snoozed for 9 minutes', [{ text: 'OK' }]);
     // TODO: Implement actual snooze logic
   };
@@ -105,8 +111,7 @@ export default function AlarmsScreen() {
               <Pressable
                 style={[styles.addButton, { backgroundColor: colors.primary }]}
                 onPress={() => {
-                  // TODO: Navigate to add alarm screen
-                  Alert.alert('Add Alarm', 'Add new alarm functionality coming soon!');
+                  router.push('/alarm-creation');
                 }}
               >
                 <Ionicons name="add" size={20} color={colors.background} />
@@ -120,13 +125,13 @@ export default function AlarmsScreen() {
               <Label
                 size="large"
                 weight="semibold"
-                style={{ color: colors.textSecondary, marginTop: Spacing.md, textAlign: 'center' }}
+                style={[styles.emptyStateTitle, { color: colors.textSecondary }]}
               >
                 No Alarms Set
               </Label>
               <Label
                 size="medium"
-                style={{ color: colors.textTertiary, marginTop: Spacing.xs, textAlign: 'center' }}
+                style={[styles.emptyStateSubtitle, { color: colors.textTertiary }]}
               >
                 Tap + to create your first alarm
               </Label>
@@ -178,7 +183,52 @@ export default function AlarmsScreen() {
                       `Set alarm for ${timeString}? (${minutes} minutes from now)`,
                       [
                         { text: 'Cancel', style: 'cancel' },
-                        { text: 'Set', onPress: () => {} },
+                        {
+                          text: 'Set',
+                          onPress: () => {
+                            const quickAlarm = {
+                              id: Date.now().toString(),
+                              label: `Quick Alarm (+${minutes}m)`,
+                              time: futureTime.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                              }),
+                              enabled: true,
+                              repeat: {
+                                monday: false,
+                                tuesday: false,
+                                wednesday: false,
+                                thursday: false,
+                                friday: false,
+                                saturday: false,
+                                sunday: false,
+                              },
+                              sound: {
+                                type: 'built-in' as const,
+                                uri: 'default',
+                                name: 'Default',
+                                volume: 80,
+                              },
+                              snooze: {
+                                enabled: true,
+                                duration: 9,
+                                maxCount: 3,
+                              },
+                              vibration: {
+                                enabled: true,
+                                pattern: [0, 250, 250, 250],
+                              },
+                              smartWakeup: {
+                                enabled: false,
+                                window: 30,
+                              },
+                              createdAt: new Date(),
+                              updatedAt: new Date(),
+                            };
+                            addAlarm(quickAlarm);
+                          },
+                        },
                       ]
                     );
                   }}
@@ -241,6 +291,14 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: Spacing.xl * 2,
+  },
+  emptyStateTitle: {
+    marginTop: Spacing.md,
+    textAlign: 'center',
+  },
+  emptyStateSubtitle: {
+    marginTop: Spacing.xs,
+    textAlign: 'center',
   },
   alarmsList: {
     gap: Spacing.sm,

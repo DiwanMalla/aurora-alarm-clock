@@ -85,7 +85,7 @@ const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) =>
 };
 
 export default function SettingsScreen() {
-  const { settings } = useAppSettings();
+  const { settings, setTimeFormat } = useAppSettings();
   const { theme, setTheme, colors } = useTheme();
   const { notifications, updateNotificationSettings } = useNotificationSettings();
   const { defaultAlarmVolume, fadeInDuration, defaultSnoozeTime } = useAudioSettings();
@@ -116,8 +116,14 @@ export default function SettingsScreen() {
 
   const handleTimeFormatPress = () => {
     Alert.alert('Time Format', 'Choose your preferred time format', [
-      { text: '12 Hour', onPress: () => {} }, // TODO: Implement
-      { text: '24 Hour', onPress: () => {} }, // TODO: Implement
+      {
+        text: '12 Hour',
+        onPress: () => setTimeFormat('12h'),
+      },
+      {
+        text: '24 Hour',
+        onPress: () => setTimeFormat('24h'),
+      },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };

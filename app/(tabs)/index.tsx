@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -12,29 +12,34 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { Typography, Spacing } from '@/constants/Design';
-import { useAppSettings, useAlarms } from '@/hooks/useStores';
+import { Typography, Spacing, Colors } from '@/constants/Design';
+import { useAlarms } from '@/hooks/useStores';
 import { useTheme } from '@/hooks/useTheme';
+import { useTimeFormat } from '@/hooks/useTimeFormat';
 import { format } from 'date-fns';
+import { router } from 'expo-router';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function ClockScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [clockType, setClockType] = useState<'digital' | 'analog'>('digital');
-  const { settings } = useAppSettings();
   const { alarms } = useAlarms();
   const { colors, isDark } = useTheme();
+  const { formatDisplayTime } = useTimeFormat();
 
-  const scaleAnim = new Animated.Value(1);
+  const scaleAnim = useMemo(() => new Animated.Value(1), []);
 
   // Update time every second
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateTime = () => {
       setCurrentTime(new Date());
-    }, 1000);
+    };
 
-    return () => clearInterval(timer);
+    updateTime(); // Initial call
+    const timer = (globalThis as typeof globalThis).setInterval(updateTime, 1000);
+
+    return () => (globalThis as typeof globalThis).clearInterval(timer);
   }, []);
 
   // Breathing animation for clock
@@ -68,9 +73,6 @@ export default function ClockScreen() {
     })[0];
 
   // Format time based on settings
-  const formatTime = (date: Date) => {
-    return format(date, settings.timeFormat === '24h' ? 'HH:mm' : 'h:mm a');
-  };
 
   const formatSeconds = (date: Date) => {
     return format(date, 'ss');
@@ -80,29 +82,13 @@ export default function ClockScreen() {
     return format(date, 'EEEE, MMMM d, yyyy');
   };
 
-  const getTimeOfDayGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    if (hour < 20) return 'Good Evening';
-    return 'Good Night';
-  };
-
-  const getTimeOfDayIcon = () => {
-    const hour = currentTime.getHours();
-    if (hour >= 6 && hour < 12) return 'sunny-outline';
-    if (hour >= 12 && hour < 17) return 'partly-sunny-outline';
-    if (hour >= 17 && hour < 20) return 'sunny-outline';
-    return 'moon-outline';
-  };
-
   const renderDigitalClock = () => (
     <Animated.View
       style={[styles(colors).digitalClockContainer, { transform: [{ scale: scaleAnim }] }]}
     >
       <View style={styles(colors).timeDisplayCard}>
         <View style={styles(colors).timeRow}>
-          <Text style={styles(colors).digitalTime}>{formatTime(currentTime)}</Text>
+          <Text style={styles(colors).digitalTime}>{formatDisplayTime(currentTime)}</Text>
           <Text style={styles(colors).digitalSeconds}>{formatSeconds(currentTime)}</Text>
         </View>
         <Text style={styles(colors).digitalDate}>{formatFullDate(currentTime)}</Text>
@@ -123,7 +109,7 @@ export default function ClockScreen() {
     const seconds = now.getSeconds();
 
     // Fixed angle calculations to ensure accuracy
-    const hourAngle = (hours * 30) + (minutes * 0.5);
+    const hourAngle = hours * 30 + minutes * 0.5;
     const minuteAngle = minutes * 6;
     const secondAngle = seconds * 6;
 
@@ -170,7 +156,7 @@ export default function ClockScreen() {
               style={[
                 styles(colors).clockHand,
                 styles(colors).hourHand,
-                { 
+                {
                   transform: [{ rotate: `${hourAngle}deg` }],
                   bottom: clockRadius,
                   height: clockRadius * 0.5,
@@ -181,7 +167,7 @@ export default function ClockScreen() {
               style={[
                 styles(colors).clockHand,
                 styles(colors).minuteHand,
-                { 
+                {
                   transform: [{ rotate: `${minuteAngle}deg` }],
                   bottom: clockRadius,
                   height: clockRadius * 0.7,
@@ -192,7 +178,7 @@ export default function ClockScreen() {
               style={[
                 styles(colors).clockHand,
                 styles(colors).secondHand,
-                { 
+                {
                   transform: [{ rotate: `${secondAngle}deg` }],
                   bottom: clockRadius,
                   height: clockRadius * 0.8,
@@ -205,7 +191,7 @@ export default function ClockScreen() {
           </View>
         </View>
         <Text style={styles(colors).analogDate}>{formatFullDate(currentTime)}</Text>
-        <Text style={styles(colors).analogTime}>{formatTime(currentTime)}</Text>
+        <Text style={styles(colors).analogTime}>{formatDisplayTime(currentTime)}</Text>
       </Animated.View>
     );
   };
@@ -265,6 +251,7 @@ export default function ClockScreen() {
           <View style={styles(colors).quickActions}>
             <TouchableOpacity
               style={[styles(colors).modernActionButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push('/alarm-creation')}
             >
               <View style={styles(colors).modernActionContent}>
                 <Ionicons name="add" size={24} color={colors.background} />
@@ -296,7 +283,7 @@ export default function ClockScreen() {
   );
 }
 
-const styles = (colors: any) =>
+const styles = (colors: typeof Colors.light) =>
   StyleSheet.create({
     container: {
       flex: 1,

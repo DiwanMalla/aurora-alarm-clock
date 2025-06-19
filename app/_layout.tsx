@@ -9,9 +9,10 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 
-import { useColorScheme } from '@/components/useColorScheme';
-import { ThemeProvider } from '@/hooks/useTheme';
+import { ThemeProvider, useTheme } from '@/hooks/useTheme';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -47,20 +48,31 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
     <ThemeProvider>
-      <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </NavigationThemeProvider>
+      <RootLayoutNav />
     </ThemeProvider>
   );
 }
+
+function RootLayoutNav() {
+  const { isDark } = useTheme();
+
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="alarm-creation" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        </Stack>
+      </NavigationThemeProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
