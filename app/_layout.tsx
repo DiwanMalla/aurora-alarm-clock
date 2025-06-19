@@ -64,6 +64,8 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="alarm-creation" options={{ headerShown: false }} />
+          <Stack.Screen name="timer" options={{ headerShown: false }} />
+          <Stack.Screen name="stopwatch" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </NavigationThemeProvider>

@@ -261,6 +261,7 @@ export default function ClockScreen() {
 
             <TouchableOpacity
               style={[styles(colors).modernActionButton, { backgroundColor: colors.accent }]}
+              onPress={() => router.push('/timer')}
             >
               <View style={styles(colors).modernActionContent}>
                 <MaterialIcons name="timer" size={24} color={colors.background} />
@@ -270,6 +271,7 @@ export default function ClockScreen() {
 
             <TouchableOpacity
               style={[styles(colors).modernActionButton, { backgroundColor: colors.secondary }]}
+              onPress={() => router.push('/stopwatch')}
             >
               <View style={styles(colors).modernActionContent}>
                 <Ionicons name="stopwatch" size={24} color={colors.background} />

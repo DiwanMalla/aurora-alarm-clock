@@ -52,6 +52,24 @@ export default function TabLayout() {
         }}
       />
 
+      {/* Timer Tab */}
+      <Tabs.Screen
+        name="timer"
+        options={{
+          title: 'Timer',
+          tabBarIcon: ({ color }) => <TabBarIcon name="timer-outline" color={color} />,
+        }}
+      />
+
+      {/* Stopwatch Tab */}
+      <Tabs.Screen
+        name="stopwatch"
+        options={{
+          title: 'Stopwatch',
+          tabBarIcon: ({ color }) => <TabBarIcon name="stopwatch-outline" color={color} />,
+        }}
+      />
+
       {/* Settings Tab */}
       <Tabs.Screen
         name="settings"

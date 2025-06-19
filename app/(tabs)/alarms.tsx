@@ -14,7 +14,7 @@ import { Alarm } from '@/stores/alarmStore';
 export default function AlarmsScreen() {
   const { colors, isDark } = useTheme();
 
-  const { alarms, updateAlarm, deleteAlarm, getNextAlarm, addAlarm } = useAlarmManagement();
+  const { alarms, updateAlarm, deleteAlarm, getNextAlarm } = useAlarmManagement();
   const nextAlarm = getNextAlarm();
 
   const handleAlarmPress = (alarm: Alarm) => {
@@ -46,11 +46,6 @@ export default function AlarmsScreen() {
         onPress: () => deleteAlarm(id),
       },
     ]);
-  };
-
-  const handleAlarmSnooze = (_id: string) => {
-    Alert.alert('Snooze Alarm', 'Alarm snoozed for 9 minutes', [{ text: 'OK' }]);
-    // TODO: Implement actual snooze logic
   };
 
   const sortedAlarms = [...alarms].sort((a, b) => {
@@ -145,101 +140,16 @@ export default function AlarmsScreen() {
                   onPress={() => handleAlarmPress(alarm)}
                   onToggle={(id: string, enabled: boolean) => handleAlarmToggle(id, enabled)}
                   onDelete={() => handleAlarmDelete(alarm.id)}
-                  onSnooze={(id: string) => handleAlarmSnooze(id)}
+                  onEdit={() => {
+                    router.push('/alarm-creation');
+                  }}
+                  onSkip={() => {
+                    Alert.alert('Skip Alarm', 'Next occurrence will be skipped', [{ text: 'OK' }]);
+                  }}
                 />
               ))}
             </View>
           )}
-        </View>
-
-        {/* Quick Add Buttons */}
-        <View style={styles.quickAddContainer}>
-          <Label
-            size="medium"
-            weight="semibold"
-            style={{ color: colors.text, marginBottom: Spacing.md }}
-          >
-            Quick Add
-          </Label>
-          <View style={styles.quickAddButtons}>
-            {[15, 30, 45, 60].map((minutes) => {
-              const now = new Date();
-              const futureTime = new Date(now.getTime() + minutes * 60000);
-              const timeString = futureTime.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-
-              return (
-                <Pressable
-                  key={minutes}
-                  style={[
-                    styles.quickAddButton,
-                    { backgroundColor: colors.surface, borderColor: colors.border },
-                  ]}
-                  onPress={() => {
-                    Alert.alert(
-                      'Quick Alarm',
-                      `Set alarm for ${timeString}? (${minutes} minutes from now)`,
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Set',
-                          onPress: () => {
-                            const quickAlarm = {
-                              id: Date.now().toString(),
-                              label: `Quick Alarm (+${minutes}m)`,
-                              time: futureTime.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false,
-                              }),
-                              enabled: true,
-                              repeat: {
-                                monday: false,
-                                tuesday: false,
-                                wednesday: false,
-                                thursday: false,
-                                friday: false,
-                                saturday: false,
-                                sunday: false,
-                              },
-                              sound: {
-                                type: 'built-in' as const,
-                                uri: 'default',
-                                name: 'Default',
-                                volume: 80,
-                              },
-                              snooze: {
-                                enabled: true,
-                                duration: 9,
-                                maxCount: 3,
-                              },
-                              vibration: {
-                                enabled: true,
-                                pattern: [0, 250, 250, 250],
-                              },
-                              smartWakeup: {
-                                enabled: false,
-                                window: 30,
-                              },
-                              createdAt: new Date(),
-                              updatedAt: new Date(),
-                            };
-                            addAlarm(quickAlarm);
-                          },
-                        },
-                      ]
-                    );
-                  }}
-                >
-                  <Label size="small" weight="semibold" style={{ color: colors.primary }}>
-                    +{minutes}m
-                  </Label>
-                </Pressable>
-              );
-            })}
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -302,19 +212,5 @@ const styles = StyleSheet.create({
   },
   alarmsList: {
     gap: Spacing.sm,
-  },
-  quickAddContainer: {
-    marginBottom: Spacing.xl,
-  },
-  quickAddButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  quickAddButton: {
-    flex: 1,
-    padding: Spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
   },
 });
