@@ -7,6 +7,12 @@ import { useAlarms } from '@/hooks/useStores';
 import { Typography, Spacing, BorderRadius, Colors } from '@/constants/Design';
 import { Alarm } from '@/stores/alarmStore';
 import { Ionicons } from '@expo/vector-icons';
+import { audioManager, AVAILABLE_SOUNDS } from '@/lib/simpleAudioManager';
+
+// Type declaration for console
+declare const console: {
+  error: (message?: string, ...optionalParams: unknown[]) => void;
+};
 
 // Custom iPhone-style Wheel Picker Component
 const WheelPicker = ({
@@ -164,13 +170,27 @@ export default function AlarmCreationScreen() {
   const [isDailyEnabled, setIsDailyEnabled] = useState(false);
   const [volume] = useState(0.8);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
-  const [selectedRingtone] = useState('Default');
+  const [selectedRingtone, setSelectedRingtone] = useState(AVAILABLE_SOUNDS[0]);
   const [snoozeEnabled, setSnoozeEnabled] = useState(true);
   const [snoozeDuration] = useState(5); // minutes
   const [fadeInEnabled, setFadeInEnabled] = useState(false);
   const [alarmLabelEnabled, setAlarmLabelEnabled] = useState(true);
 
-  // Generate picker data
+  // Handle sound selection and testing
+  const handleSoundSelection = () => {
+    const currentIndex = AVAILABLE_SOUNDS.findIndex((s) => s.id === selectedRingtone.id);
+
+    // For now, cycle through available sounds
+    const nextIndex = (currentIndex + 1) % AVAILABLE_SOUNDS.length;
+    const nextSound = AVAILABLE_SOUNDS[nextIndex];
+
+    setSelectedRingtone(nextSound);
+
+    // Test the new sound
+    audioManager.playTestSound(nextSound.id).catch((error) => {
+      console.error('Failed to test sound:', error);
+    });
+  };
   const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
   const amPmOptions = ['AM', 'PM'];
@@ -222,8 +242,8 @@ export default function AlarmCreationScreen() {
       repeat: finalRepeat,
       sound: {
         type: 'built-in' as const,
-        uri: 'built-in://' + selectedRingtone,
-        name: selectedRingtone,
+        uri: 'built-in://' + selectedRingtone.id,
+        name: selectedRingtone.name,
         volume: volume * 100,
       },
       snooze: {
@@ -681,11 +701,11 @@ export default function AlarmCreationScreen() {
           </View>
 
           {/* Ringtone */}
-          <TouchableOpacity style={styles.controlRow}>
+          <TouchableOpacity style={styles.controlRow} onPress={handleSoundSelection}>
             <Text style={styles.controlLabel}>Ringtone</Text>
             <View style={styles.ringtoneRow}>
               <Text style={[styles.controlLabel, { color: colors.textSecondary }]}>
-                {selectedRingtone}
+                {selectedRingtone.name}
               </Text>
               <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             </View>

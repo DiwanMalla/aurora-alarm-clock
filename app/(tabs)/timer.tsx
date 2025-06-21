@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Label } from '@/components/ui';
 import { useTheme } from '@/hooks/useTheme';
 import { Spacing } from '@/constants/Design';
+import { audioManager } from '@/lib/simpleAudioManager';
+import { notificationManager } from '@/lib/notificationManager';
+import * as Haptics from 'expo-haptics';
+
+// Type declarations for timer functions
+declare const setInterval: (callback: () => void, ms: number) => number;
+declare const clearInterval: (id: number) => void;
+declare const console: {
+  error: (message?: string, ...optionalParams: unknown[]) => void;
+};
 
 export default function TimerScreen() {
   const { colors, isDark } = useTheme();
@@ -35,7 +45,11 @@ export default function TimerScreen() {
           if (prev <= 1) {
             setIsRunning(false);
             setIsPaused(false);
-            Alert.alert('Timer', "Time's up!", [{ text: 'OK' }]);
+            // Play timer sound and add strong haptic feedback
+            audioManager.playTimerSound().catch(console.error);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {
+              // Ignore haptic errors - not critical
+            });
             return 0;
           }
           return prev - 1;
@@ -66,20 +80,40 @@ export default function TimerScreen() {
       // Starting fresh
       const totalSeconds = minutes * 60 + seconds;
       setTimeLeft(totalSeconds);
+
+      // Schedule notification for when timer completes
+      notificationManager
+        .scheduleTimerNotification(totalSeconds, 'Timer Complete')
+        .catch(console.error);
     }
     setIsRunning(true);
     setIsPaused(false);
+
+    // Add haptic feedback for start action
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {
+      // Ignore haptic errors - not critical
+    });
   };
 
   const handlePause = () => {
     setIsRunning(false);
     setIsPaused(true);
+
+    // Add haptic feedback for pause action
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
+      // Ignore haptic errors - not critical
+    });
   };
 
   const handleReset = () => {
     setIsRunning(false);
     setIsPaused(false);
     setTimeLeft(0);
+
+    // Add haptic feedback for reset action
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {
+      // Ignore haptic errors - not critical
+    });
   };
 
   const handlePresetSelect = (preset: number) => {
@@ -240,10 +274,8 @@ export default function TimerScreen() {
             <Pressable
               style={[
                 styles.primaryButton,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: minutes === 0 && seconds === 0 ? 0.5 : 1,
-                },
+                { backgroundColor: colors.primary },
+                minutes === 0 && seconds === 0 && styles.disabledButton,
               ]}
               onPress={handleStart}
               disabled={minutes === 0 && seconds === 0}
@@ -282,7 +314,10 @@ export default function TimerScreen() {
                 style={[
                   styles.secondaryButton,
                   styles.borderedButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
                 ]}
                 onPress={handleReset}
               >
@@ -317,55 +352,69 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   header: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   timerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: Spacing.xl,
+    marginVertical: Spacing.lg,
   },
   timerCircle: {
     width: 280,
     height: 280,
     borderRadius: 140,
-    borderWidth: 8,
+    borderWidth: 6,
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: Spacing.md,
+    padding: Spacing.lg,
   },
   timerText: {
-    fontSize: 48,
-    fontWeight: '300',
+    fontSize: 42,
+    fontWeight: '200',
     letterSpacing: -2,
+    textAlign: 'center',
+    lineHeight: 50,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    marginTop: -4,
   },
   adjustmentContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: Spacing.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.xs,
+    gap: Spacing.md,
   },
   adjustmentGroup: {
     alignItems: 'center',
+    flex: 1,
   },
   adjustmentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: Spacing.sm,
+    justifyContent: 'center',
   },
   adjustButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: Spacing.sm,
+    marginHorizontal: 4,
   },
   adjustValue: {
-    minWidth: 50,
+    minWidth: 36,
     textAlign: 'center',
+    marginHorizontal: 4,
   },
   presetsContainer: {
     marginBottom: Spacing.xl,
@@ -415,6 +464,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
+    borderWidth: 1,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  borderedButton: {
     borderWidth: 1,
   },
 });

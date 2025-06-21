@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 
 import { ThemeProvider, useTheme } from '@/hooks/useTheme';
+import { notificationManager } from '@/lib/notificationManager';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -41,6 +42,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+
+      // Initialize notification listeners
+      notificationManager.setupNotificationListeners();
     }
   }, [loaded]);
 
