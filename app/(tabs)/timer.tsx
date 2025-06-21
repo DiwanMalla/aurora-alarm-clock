@@ -15,7 +15,7 @@ export default function TimerScreen() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const intervalRef = useRef<number | null>(null);
 
   // Preset timer values (in minutes)
   const presets = [1, 3, 5, 10, 15, 30, 45, 60];
@@ -281,7 +281,8 @@ export default function TimerScreen() {
               <Pressable
                 style={[
                   styles.secondaryButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
+                  styles.borderedButton,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
                 ]}
                 onPress={handleReset}
               >

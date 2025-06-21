@@ -1,21 +1,21 @@
+/* global jest */
 import 'react-native-gesture-handler/jestSetup';
+import ReanimatedMock from 'react-native-reanimated/mock';
 
 // Mock reanimated
 jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-
   // The mock for `call` immediately calls the callback which is incorrect
   // So we override it with a no-op
-  Reanimated.default.call = () => {};
+  ReanimatedMock.default.call = () => {};
 
-  return Reanimated;
+  return ReanimatedMock;
 });
 
 // Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+import AsyncStorageMock from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => AsyncStorageMock);
 // Mock Expo modules
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -57,4 +57,4 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => ({
 }));
 
 // Global test setup
-global.__DEV__ = true;
+globalThis.__DEV__ = true;

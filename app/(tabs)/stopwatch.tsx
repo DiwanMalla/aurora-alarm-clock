@@ -53,7 +53,7 @@ export default function StopwatchScreen() {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     const milliseconds = Math.floor((totalMs % 1000) / 10);
-    
+
     return `${minutes.toString().padStart(2, '0')}:${seconds
       .toString()
       .padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
@@ -154,7 +154,11 @@ export default function StopwatchScreen() {
                 </Pressable>
 
                 <Pressable
-                  style={[styles.controlButton, styles.startButton, { backgroundColor: colors.success || colors.primary }]}
+                  style={[
+                    styles.controlButton,
+                    styles.startButton,
+                    { backgroundColor: colors.success || colors.primary },
+                  ]}
                   onPress={handleStart}
                 >
                   <Label size="medium" weight="semibold" style={{ color: colors.background }}>
@@ -165,7 +169,11 @@ export default function StopwatchScreen() {
             ) : (
               <>
                 <Pressable
-                  style={[styles.controlButton, styles.lapButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[
+                    styles.controlButton,
+                    styles.lapButton,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
                   onPress={handleLap}
                 >
                   <Label size="medium" weight="semibold" style={{ color: colors.text }}>
@@ -174,7 +182,11 @@ export default function StopwatchScreen() {
                 </Pressable>
 
                 <Pressable
-                  style={[styles.controlButton, styles.stopButton, { backgroundColor: colors.error }]}
+                  style={[
+                    styles.controlButton,
+                    styles.stopButton,
+                    { backgroundColor: colors.error },
+                  ]}
                   onPress={handleStop}
                 >
                   <Label size="medium" weight="semibold" style={{ color: colors.background }}>
@@ -189,7 +201,11 @@ export default function StopwatchScreen() {
         {/* Laps List */}
         {laps.length > 0 && (
           <View style={styles.lapsContainer}>
-            <Label size="medium" weight="semibold" style={{ color: colors.textSecondary, marginBottom: Spacing.md }}>
+            <Label
+              size="medium"
+              weight="semibold"
+              style={{ color: colors.textSecondary, marginBottom: Spacing.md }}
+            >
               Laps
             </Label>
             <ScrollView style={styles.lapsList} showsVerticalScrollIndicator={false}>
@@ -198,9 +214,11 @@ export default function StopwatchScreen() {
                 .reverse()
                 .map((lap, index) => {
                   const isActuallyFirst = lap.id === laps.length;
-                  const isFastest = fastestLap !== null && lap.time === fastestLap && laps.length > 1;
-                  const isSlowest = slowestLap !== null && lap.time === slowestLap && laps.length > 1;
-                  
+                  const isFastest =
+                    fastestLap !== null && lap.time === fastestLap && laps.length > 1;
+                  const isSlowest =
+                    slowestLap !== null && lap.time === slowestLap && laps.length > 1;
+
                   return (
                     <View
                       key={lap.id}
@@ -217,15 +235,33 @@ export default function StopwatchScreen() {
                           Lap {lap.id}
                         </Label>
                         {isFastest && (
-                          <View style={[styles.lapBadge, { backgroundColor: colors.success || colors.primary }]}>
-                            <Label size="small" weight="semibold" style={{ color: colors.background }}>
+                          <View
+                            style={[
+                              styles.lapBadge,
+                              { backgroundColor: colors.success || colors.primary },
+                            ]}
+                          >
+                            <Label
+                              size="small"
+                              weight="semibold"
+                              style={{ color: colors.background }}
+                            >
                               Best
                             </Label>
                           </View>
                         )}
                         {isSlowest && (
-                          <View style={[styles.lapBadge, { backgroundColor: colors.warning || colors.error }]}>
-                            <Label size="small" weight="semibold" style={{ color: colors.background }}>
+                          <View
+                            style={[
+                              styles.lapBadge,
+                              { backgroundColor: colors.warning || colors.error },
+                            ]}
+                          >
+                            <Label
+                              size="small"
+                              weight="semibold"
+                              style={{ color: colors.background }}
+                            >
                               Worst
                             </Label>
                           </View>

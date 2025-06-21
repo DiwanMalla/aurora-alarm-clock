@@ -158,7 +158,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
               onValueChange={handleToggle}
               testID={`${testID}-toggle`}
             />
-            
+
             {/* Options Menu Button */}
             <Pressable
               style={[styles.optionsButton, { backgroundColor: colors.surface }]}
