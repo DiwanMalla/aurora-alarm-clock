@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, Alert } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, Spacing, BorderRadius } from '../../constants/Design';
 import { useTheme } from '../../hooks/useTheme';
 import { useTimeFormat } from '../../hooks/useTimeFormat';
 import { Alarm } from '../../stores/alarmStore';
 import { Switch } from './Switch';
-import { Modal } from './Modal';
 
 interface AlarmCardProps {
   alarm: Alarm;
@@ -31,7 +31,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
 }) => {
   const { colors } = useTheme();
   const { formatAlarmTime } = useTimeFormat();
-  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
 
   // Get repeat days string
   const getRepeatDays = () => {
@@ -64,18 +64,18 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
   };
 
   const handleOptionsPress = () => {
-    setShowOptionsModal(true);
+    setShowOptionsDropdown(!showOptionsDropdown);
   };
 
   const handleEdit = () => {
-    setShowOptionsModal(false);
+    setShowOptionsDropdown(false);
     if (onEdit) {
       onEdit(alarm);
     }
   };
 
   const handleDelete = () => {
-    setShowOptionsModal(false);
+    setShowOptionsDropdown(false);
     Alert.alert('Delete Alarm', 'Are you sure you want to delete this alarm?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -87,161 +87,171 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
   };
 
   const handleSkip = () => {
-    setShowOptionsModal(false);
+    setShowOptionsDropdown(false);
     if (onSkip) {
       onSkip(alarm.id);
     }
   };
 
   return (
-    <View style={[styles.container, style]}>
-      <Pressable
-        style={[
-          styles.card,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-          },
-        ]}
-        onPress={handlePress}
-        testID={testID}
-      >
-        <View style={styles.content}>
-          {/* Time Display */}
-          <View style={styles.timeContainer}>
-            <Text
-              style={[
-                styles.timeText,
-                {
-                  color: alarm.enabled ? colors.text : colors.textSecondary,
-                },
-              ]}
-              testID={`${testID}-time`}
-            >
-              {formatAlarmTime(alarm.time)}
-            </Text>
+    <>
+      {/* Overlay to close dropdown when clicking outside */}
+      {showOptionsDropdown && (
+        <Pressable style={styles.dropdownOverlay} onPress={() => setShowOptionsDropdown(false)} />
+      )}
 
-            {/* Label */}
-            {alarm.label && (
+      <View style={[styles.container, style]}>
+        <Pressable
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+          onPress={handlePress}
+          testID={testID}
+        >
+          <View style={styles.content}>
+            {/* Time Display */}
+            <View style={styles.timeContainer}>
               <Text
                 style={[
-                  styles.labelText,
+                  styles.timeText,
+                  {
+                    color: alarm.enabled ? colors.text : colors.textSecondary,
+                  },
+                ]}
+                testID={`${testID}-time`}
+              >
+                {formatAlarmTime(alarm.time)}
+              </Text>
+
+              {/* Label */}
+              {alarm.label && (
+                <Text
+                  style={[
+                    styles.labelText,
+                    {
+                      color: alarm.enabled ? colors.textSecondary : colors.textTertiary,
+                    },
+                  ]}
+                  testID={`${testID}-label`}
+                >
+                  {alarm.label}
+                </Text>
+              )}
+
+              {/* Repeat Days */}
+              <Text
+                style={[
+                  styles.repeatText,
                   {
                     color: alarm.enabled ? colors.textSecondary : colors.textTertiary,
                   },
                 ]}
-                testID={`${testID}-label`}
+                testID={`${testID}-repeat`}
               >
-                {alarm.label}
-              </Text>
-            )}
-
-            {/* Repeat Days */}
-            <Text
-              style={[
-                styles.repeatText,
-                {
-                  color: alarm.enabled ? colors.textSecondary : colors.textTertiary,
-                },
-              ]}
-              testID={`${testID}-repeat`}
-            >
-              {getRepeatDays()}
-            </Text>
-          </View>
-
-          {/* Controls */}
-          <View style={styles.controls}>
-            {/* Toggle Switch */}
-            <Switch
-              value={alarm.enabled}
-              onValueChange={handleToggle}
-              testID={`${testID}-toggle`}
-            />
-
-            {/* Options Menu Button */}
-            <Pressable
-              style={[styles.optionsButton, { backgroundColor: colors.surface }]}
-              onPress={handleOptionsPress}
-              testID={`${testID}-options`}
-            >
-              <Ionicons name="ellipsis-vertical" size={20} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Additional Info Row */}
-        <View style={styles.infoRow}>
-          {/* Sound Info */}
-          <View style={styles.infoItem}>
-            <Ionicons name="volume-medium-outline" size={16} color={colors.textSecondary} />
-            <Text
-              style={[styles.infoText, { color: colors.textSecondary }]}
-              testID={`${testID}-sound`}
-            >
-              {alarm.sound.name}
-            </Text>
-          </View>
-
-          {/* Smart Wake-up Indicator */}
-          {alarm.smartWakeup.enabled && (
-            <View style={styles.infoItem}>
-              <Ionicons name="sunny-outline" size={16} color={colors.accent} />
-              <Text
-                style={[styles.infoText, { color: colors.accent }]}
-                testID={`${testID}-smart-wakeup`}
-              >
-                Smart Wake-up
+                {getRepeatDays()}
               </Text>
             </View>
-          )}
 
-          {/* Vibration Indicator */}
-          {alarm.vibration.enabled && (
+            {/* Controls */}
+            <View style={styles.controls}>
+              {/* Toggle Switch */}
+              <Switch
+                value={alarm.enabled}
+                onValueChange={handleToggle}
+                testID={`${testID}-toggle`}
+              />
+
+              {/* Options Menu Button */}
+              <Pressable
+                style={[styles.optionsButton, { backgroundColor: colors.surface }]}
+                onPress={handleOptionsPress}
+                testID={`${testID}-options`}
+              >
+                <Ionicons name="ellipsis-vertical" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Additional Info Row */}
+          <View style={styles.infoRow}>
+            {/* Sound Info */}
             <View style={styles.infoItem}>
-              <Ionicons name="phone-portrait-outline" size={16} color={colors.textSecondary} />
+              <Ionicons name="volume-medium-outline" size={16} color={colors.textSecondary} />
               <Text
                 style={[styles.infoText, { color: colors.textSecondary }]}
-                testID={`${testID}-vibration`}
+                testID={`${testID}-sound`}
               >
-                Vibrate
+                {alarm.sound.name}
               </Text>
             </View>
-          )}
-        </View>
-      </Pressable>
 
-      {/* Options Modal */}
-      <Modal
-        visible={showOptionsModal}
-        onClose={() => setShowOptionsModal(false)}
-        title="Alarm Options"
-        size="small"
-      >
-        <View style={styles.optionsContainer}>
-          <Pressable
-            style={[styles.optionItem, { borderBottomColor: colors.border }]}
-            onPress={handleEdit}
+            {/* Smart Wake-up Indicator */}
+            {alarm.smartWakeup.enabled && (
+              <View style={styles.infoItem}>
+                <Ionicons name="sunny-outline" size={16} color={colors.accent} />
+                <Text
+                  style={[styles.infoText, { color: colors.accent }]}
+                  testID={`${testID}-smart-wakeup`}
+                >
+                  Smart Wake-up
+                </Text>
+              </View>
+            )}
+
+            {/* Vibration Indicator */}
+            {alarm.vibration.enabled && (
+              <View style={styles.infoItem}>
+                <Ionicons name="phone-portrait-outline" size={16} color={colors.textSecondary} />
+                <Text
+                  style={[styles.infoText, { color: colors.textSecondary }]}
+                  testID={`${testID}-vibration`}
+                >
+                  Vibrate
+                </Text>
+              </View>
+            )}
+          </View>
+        </Pressable>
+
+        {/* Options Modal */}
+        {showOptionsDropdown && (
+          <View
+            style={[
+              styles.dropdownMenu,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
           >
-            <Ionicons name="create-outline" size={20} color={colors.text} />
-            <Text style={[styles.optionText, { color: colors.text }]}>Edit</Text>
-          </Pressable>
+            <Pressable
+              style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
+              onPress={handleEdit}
+            >
+              <Ionicons name="create-outline" size={18} color={colors.text} />
+              <Text style={[styles.dropdownText, { color: colors.text }]}>Edit</Text>
+            </Pressable>
 
-          <Pressable
-            style={[styles.optionItem, { borderBottomColor: colors.border }]}
-            onPress={handleSkip}
-          >
-            <Ionicons name="play-skip-forward-outline" size={20} color={colors.text} />
-            <Text style={[styles.optionText, { color: colors.text }]}>Skip Next</Text>
-          </Pressable>
+            <Pressable
+              style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
+              onPress={handleSkip}
+            >
+              <Ionicons name="play-skip-forward-outline" size={18} color={colors.text} />
+              <Text style={[styles.dropdownText, { color: colors.text }]}>Skip Next</Text>
+            </Pressable>
 
-          <Pressable style={styles.optionItem} onPress={handleDelete}>
-            <Ionicons name="trash-outline" size={20} color={colors.error} />
-            <Text style={[styles.optionText, { color: colors.error }]}>Delete</Text>
-          </Pressable>
-        </View>
-      </Modal>
-    </View>
+            <Pressable
+              style={[styles.dropdownItem, styles.lastDropdownItem]}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.error} />
+              <Text style={[styles.dropdownText, { color: colors.error }]}>Delete</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </>
   );
 };
 
@@ -327,5 +337,41 @@ const styles = StyleSheet.create({
   optionText: {
     ...Typography.body,
     fontWeight: '500',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: -10,
+    right: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    zIndex: 1000,
+    minWidth: 120,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderBottomWidth: 1,
+    gap: Spacing.sm,
+  },
+  lastDropdownItem: {
+    borderBottomWidth: 0,
+  },
+  dropdownText: {
+    ...Typography.body,
+    fontSize: 14,
+  },
+  dropdownOverlay: {
+    position: 'absolute',
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    bottom: -1000,
+    zIndex: 999,
   },
 });

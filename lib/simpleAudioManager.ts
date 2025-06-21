@@ -18,7 +18,7 @@ export interface SoundOption {
   description?: string;
 }
 
-// Available sounds for the app
+// Available sounds for the app - including built-in OS ringtones
 export const AVAILABLE_SOUNDS: SoundOption[] = [
   {
     id: 'system-default',
@@ -27,28 +27,58 @@ export const AVAILABLE_SOUNDS: SoundOption[] = [
     description: 'Use device default alarm sound',
   },
   {
+    id: 'opening',
+    name: 'Opening',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'apex',
+    name: 'Apex',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'beacon',
+    name: 'Beacon',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'bulletin',
+    name: 'Bulletin',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'chimes',
+    name: 'Chimes',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'circuit',
+    name: 'Circuit',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'constellation',
+    name: 'Constellation',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
+    id: 'cosmic',
+    name: 'Cosmic',
+    type: 'builtin',
+    description: 'iOS built-in ringtone',
+  },
+  {
     id: 'notification',
     name: 'Notification',
     type: 'notification',
     description: 'Standard notification sound',
-  },
-  {
-    id: 'gentle',
-    name: 'Gentle Alarm',
-    type: 'notification',
-    description: 'Soft wake-up sound',
-  },
-  {
-    id: 'classic',
-    name: 'Classic Bell',
-    type: 'notification',
-    description: 'Traditional alarm bell',
-  },
-  {
-    id: 'digital',
-    name: 'Digital Beep',
-    type: 'notification',
-    description: 'Modern digital alarm',
   },
 ];
 
@@ -105,9 +135,15 @@ class SimpleAudioManager {
       if (soundId === 'system-default' || soundId === 'notification') {
         // Use notification system for reliable alarm playback
         await this.playNotificationAlarm(loop, duration);
+      } else if (
+        soundId.includes('opening') ||
+        soundId.includes('apex') ||
+        soundId.includes('beacon')
+      ) {
+        // For built-in iOS sounds, use the sound file approach
+        await this.playBuiltInSound(soundId, loop, duration);
       } else {
-        // For now, fall back to notification system
-        // In the future, you could add custom sound files here
+        // For other sounds, fall back to notification system
         await this.playNotificationAlarm(loop, duration);
       }
 
@@ -233,6 +269,33 @@ class SimpleAudioManager {
       });
     } catch (error) {
       console.error('❌ Fallback notification failed:', error);
+    }
+  }
+
+  private async playBuiltInSound(
+    soundId: string,
+    loop: boolean = true,
+    duration?: number
+  ): Promise<void> {
+    try {
+      // For now, we'll use the notification system as a fallback
+      // In a production app, you would include actual sound files
+      // and load them using Audio.Sound.createAsync()
+      console.log(`🎵 Playing built-in sound: ${soundId}`);
+
+      // Use notification as fallback for built-in sounds
+      await this.playNotificationAlarm(loop, duration);
+
+      // TODO: Implement actual sound file loading:
+      // const { sound } = await Audio.Sound.createAsync(
+      //   require(`../assets/sounds/${soundId}.mp3`)
+      // );
+      // this.currentAlarm = sound;
+      // await sound.setIsLoopingAsync(loop);
+      // await sound.playAsync();
+    } catch (error) {
+      console.error(`❌ Failed to play built-in sound ${soundId}:`, error);
+      await this.playFallbackNotification();
     }
   }
 

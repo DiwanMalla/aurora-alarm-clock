@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
@@ -153,11 +161,20 @@ export default function AlarmCreationScreen() {
   // Get editing alarm from router params (if any)
   // const editingAlarm = router.params?.editingAlarm as Alarm | undefined;
 
-  // Form state
-  const [selectedHour, setSelectedHour] = useState(7);
-  const [selectedMinute, setSelectedMinute] = useState(0);
-  const [selectedAmPm, setSelectedAmPm] = useState(0); // 0 = AM, 1 = PM
-  const [label] = useState('Alarm');
+  // Get current time for initial values
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+
+  // Convert to 12-hour format for initial values
+  const initialHour = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+  const initialAmPm = currentHour >= 12 ? 1 : 0; // 0 = AM, 1 = PM
+
+  // Form state with current time as default
+  const [selectedHour, setSelectedHour] = useState(initialHour);
+  const [selectedMinute, setSelectedMinute] = useState(currentMinute);
+  const [selectedAmPm, setSelectedAmPm] = useState(initialAmPm);
+  const [label, setLabel] = useState('Alarm'); // Made editable
   const [repeat, setRepeat] = useState({
     sunday: false,
     monday: false,
@@ -168,7 +185,7 @@ export default function AlarmCreationScreen() {
     saturday: false,
   });
   const [isDailyEnabled, setIsDailyEnabled] = useState(false);
-  const [volume] = useState(0.8);
+  const [volume, setVolume] = useState(0.8); // Made editable with working controls
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [selectedRingtone, setSelectedRingtone] = useState(AVAILABLE_SOUNDS[0]);
   const [snoozeEnabled, setSnoozeEnabled] = useState(true);
@@ -598,6 +615,17 @@ export default function AlarmCreationScreen() {
         flexDirection: 'row',
         alignItems: 'center',
       },
+      labelInputContainer: {
+        borderWidth: 1,
+        borderRadius: BorderRadius.md,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.xs,
+      },
+      labelInput: {
+        ...Typography.body,
+        paddingVertical: Spacing.sm,
+        minHeight: 44,
+      },
     });
 
   const styles = createStyles(colors);
@@ -677,15 +705,45 @@ export default function AlarmCreationScreen() {
 
         {/* Controls */}
         <View style={styles.controlsSection}>
+          {/* Label Input */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Label</Text>
+            <View
+              style={[
+                styles.labelInputContainer,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              <TextInput
+                style={[styles.labelInput, { color: colors.text }]}
+                value={label}
+                onChangeText={setLabel}
+                placeholder="Alarm name..."
+                placeholderTextColor={colors.textSecondary}
+                maxLength={50}
+                autoCorrect={false}
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
           {/* Volume */}
           <View style={styles.controlRow}>
             <Text style={styles.controlLabel}>Volume</Text>
             <View style={styles.volumeContainer}>
-              <Ionicons name="volume-mute" size={20} color={colors.textSecondary} />
+              <TouchableOpacity onPress={() => setVolume(Math.max(0, volume - 0.1))}>
+                <Ionicons name="volume-mute" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
               <View style={styles.volumeSlider}>
-                <View style={[styles.volumeTrack, { width: `${volume * 100}%` }]} />
+                <View
+                  style={[
+                    styles.volumeTrack,
+                    { width: `${volume * 100}%`, backgroundColor: colors.primary },
+                  ]}
+                />
               </View>
-              <Ionicons name="volume-high" size={20} color={colors.textSecondary} />
+              <TouchableOpacity onPress={() => setVolume(Math.min(1, volume + 0.1))}>
+                <Ionicons name="volume-high" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
             </View>
           </View>
 

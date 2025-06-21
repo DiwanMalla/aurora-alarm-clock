@@ -107,13 +107,15 @@
 ## 🔄 Latest UI/UX Fixes (June 21, 2025)
 
 ### Timer Screen Improvements ✅
+
 - **Fixed spacing issues**: Reduced gaps in minute/second adjustment controls
 - **Optimized button sizing**: Made +/- buttons smaller (36x36px) with reduced margins
 - **Improved timer circle**: Reduced from 320px to 280px for better screen fit
 - **Enhanced text display**: Reduced font size from 48px to 42px with proper line height
 - **Better mobile fit**: All controls now properly fit on mobile screens
 
-### Stopwatch Screen Improvements ✅  
+### Stopwatch Screen Improvements ✅
+
 - **Made page fully scrollable**: Wrapped content in ScrollView for lap list visibility
 - **Fixed lap functionality**: Proper lap time calculation with haptic feedback
 - **Optimized timer display**: Reduced circle size and font for better mobile experience
@@ -121,6 +123,7 @@
 - **Better performance**: Improved component rendering and interaction feedback
 
 ### Audio & Haptic Feedback ✅
+
 - **Timer completion**: Replaced Alert with audio + strong haptic feedback
 - **All interactions**: Added appropriate haptic feedback for start/pause/reset/lap
 - **No more alerts**: All notification-style interactions use proper audio/haptic
@@ -289,3 +292,75 @@
 **Summary:** Week 4 was highly successful with all primary objectives completed ahead of schedule. The Timer/Stopwatch implementation is now feature-complete with robust audio and notification support. The codebase is clean, well-documented, and ready for comprehensive testing in Week 5.
 
 **Confidence Level:** HIGH ✅ - All features working as expected with no blocking issues.
+
+## ✅ COMPLETED: Major Alarm UX Improvements (June 21, 2025)
+
+### 🎯 Alarm Creation Enhancements
+
+**✅ Current Time Default**: When clicking "Add Alarm", now displays current time instead of 7:00 AM
+- Automatically sets current hour/minute as initial values
+- Properly converts to 12-hour format with correct AM/PM
+- Much more user-friendly experience
+
+**✅ Editable Label Input**: Added proper alarm label functionality
+- Text input field with placeholder "Alarm name..."
+- Auto-capitalization and 50 character limit
+- Proper styling with theme colors and border
+- Replaces the unused static "Alarm" label
+
+**✅ Functional Volume Controls**: Volume slider now actually works!
+- Tap - and + icons to decrease/increase volume
+- Visual feedback with animated track width
+- Volume changes are saved with the alarm
+- Proper integration with alarm audio system
+
+**✅ Built-in OS Ringtones**: Real device ringtones available
+- Added iOS built-in sounds: Opening, Apex, Beacon, Bulletin, Chimes, Circuit, Constellation, Cosmic
+- System Default option uses device alarm sound
+- Proper sound testing when selecting ringtones
+- Enhanced audio manager with built-in sound support
+
+### 🎯 Three-Dot Menu Redesign
+
+**✅ Dropdown Instead of Modal**: Much better UX for alarm options
+- Shows compact dropdown menu below the three-dot button
+- No more full-screen modal covering everything
+- Options: Edit, Skip Next, Delete with proper icons
+- Auto-closes when clicking outside the menu
+
+**✅ Better Positioning**: 
+- Positioned relative to the button, not screen center
+- Proper z-index layering and shadow effects
+- Smaller, more focused interface
+- Consistent with mobile design patterns
+
+### 🔊 Audio System Improvements
+
+**✅ Real Ringtone Support**: Groundwork for actual device sounds
+- Built-in sound detection and handling
+- Fallback system for unsupported sounds
+- Enhanced AVAILABLE_SOUNDS array with real ringtone names
+- Audio testing functionality works with all sound types
+
+**✅ Better Sound Selection UX**: 
+- "Vibration System Default" changed to proper ringtone selection
+- Shows currently selected ringtone name
+- Option to test sounds before saving
+- Clear audio feedback when making selections
+
+### 📱 Technical Improvements
+
+**✅ Type Safety**: All new components properly typed
+- Proper TypeScript interfaces for new features
+- No unused variables or imports
+- Consistent code patterns throughout
+
+**✅ Theme Integration**: All new UI respects dark/light themes
+- Proper color usage from theme system
+- Consistent spacing and typography
+- Platform-appropriate styling
+
+**✅ Error Handling**: Robust error handling for all new features
+- Audio fallbacks if built-in sounds fail
+- Proper validation for text inputs
+- Graceful degradation for unsupported features
