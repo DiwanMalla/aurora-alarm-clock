@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,41 +11,59 @@ import { Spacing } from '@/constants/Design';
 import { useTheme } from '@/hooks/useTheme';
 import { Alarm } from '@/stores/alarmStore';
 
-export default function AlarmsScreen() {
-  const { colors, isDark } = useTheme();
+// Type declarations
+declare const console: {
+  log: (message?: string, ...optionalParams: unknown[]) => void;
+  error: (message?: string, ...optionalParams: unknown[]) => void;
+};
 
-  const { alarms, updateAlarm, deleteAlarm, getNextAlarm } = useAlarmManagement();
+export default function AlarmsScreen() {
+  const { colors } = useTheme();
+  const { alarms, updateAlarm, deleteAlarm, getNextAlarm, addAlarm } = useAlarmManagement();
   const nextAlarm = getNextAlarm();
 
   const handleAlarmPress = (alarm: Alarm) => {
-    Alert.alert(
-      'Alarm Details',
-      `Label: ${alarm.label}\nTime: ${alarm.time}\nEnabled: ${alarm.enabled ? 'Yes' : 'No'}`,
-      [
-        {
-          text: 'Edit',
-          onPress: () => {
-            router.push('/alarm-creation');
-          },
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    // Direct edit - navigate to alarm creation with the alarm data
+    router.push({
+      pathname: '/alarm-creation',
+      params: { editingAlarm: JSON.stringify(alarm) },
+    });
   };
 
   const handleAlarmToggle = (id: string, enabled: boolean) => {
     updateAlarm(id, { enabled });
   };
 
+  // Navigate to preview screen
+  const handleAlarmPreview = (id: string) => {
+    router.push({
+      pathname: '/alarm-preview',
+      params: { alarmId: id },
+    });
+  };
+
+  // Implement duplicate alarm functionality
+  const handleAlarmDuplicate = (alarm: Alarm) => {
+    // Create a new alarm with same settings but different ID and updated label
+    const duplicatedAlarm: Alarm = {
+      ...alarm,
+      id: Date.now().toString(), // Simple ID generation
+      label: `${alarm.label} Copy`,
+      enabled: false, // Start disabled by default
+    };
+
+    // Add the duplicated alarm
+    addAlarm(duplicatedAlarm);
+  };
+
   const handleAlarmDelete = (id: string) => {
-    Alert.alert('Delete Alarm', 'Are you sure you want to delete this alarm?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => deleteAlarm(id),
-      },
-    ]);
+    deleteAlarm(id); // Remove duplicate confirmation - AlarmCard handles it
+  };
+
+  // TODO: Implement skip once functionality
+  const handleAlarmSkip = (id: string) => {
+    console.log('TODO: Skip alarm once', id);
+    // TODO: Disable alarm for next occurrence only, then re-enable
   };
 
   const sortedAlarms = [...alarms].sort((a, b) => {
@@ -62,7 +80,7 @@ export default function AlarmsScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       edges={['top']}
     >
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="dark" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Next Alarm Info */}
@@ -140,12 +158,9 @@ export default function AlarmsScreen() {
                   onPress={() => handleAlarmPress(alarm)}
                   onToggle={(id: string, enabled: boolean) => handleAlarmToggle(id, enabled)}
                   onDelete={() => handleAlarmDelete(alarm.id)}
-                  onEdit={() => {
-                    router.push('/alarm-creation');
-                  }}
-                  onSkip={() => {
-                    Alert.alert('Skip Alarm', 'Next occurrence will be skipped', [{ text: 'OK' }]);
-                  }}
+                  onPreview={() => handleAlarmPreview(alarm.id)}
+                  onDuplicate={() => handleAlarmDuplicate(alarm)}
+                  onSkip={() => handleAlarmSkip(alarm.id)}
                 />
               ))}
             </View>
@@ -212,5 +227,10 @@ const styles = StyleSheet.create({
   },
   alarmsList: {
     gap: Spacing.sm,
+  },
+  previewContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -8,6 +8,11 @@ export const useAlarms = () => {
   const updateAlarm = useAlarmStore((state) => state.updateAlarm);
   const deleteAlarm = useAlarmStore((state) => state.deleteAlarm);
   const toggleAlarm = useAlarmStore((state) => state.toggleAlarm);
+  const activeAlarm = useAlarmStore((state) => state.activeAlarm);
+  const isAlarmRinging = useAlarmStore((state) => state.isAlarmRinging);
+  const dismissAlarm = useAlarmStore((state) => state.dismissAlarm);
+  const snoozeAlarm = useAlarmStore((state) => state.snoozeAlarm);
+  const getAlarmById = useAlarmStore((state) => state.getAlarmById);
 
   return {
     alarms,
@@ -15,6 +20,11 @@ export const useAlarms = () => {
     updateAlarm,
     deleteAlarm,
     toggleAlarm,
+    activeAlarm,
+    isAlarmRinging,
+    dismissAlarm,
+    snoozeAlarm,
+    getAlarmById,
   };
 };
 

@@ -14,6 +14,7 @@ import { StyleSheet } from 'react-native';
 
 import { ThemeProvider, useTheme } from '@/hooks/useTheme';
 import { notificationManager } from '@/lib/notificationManager';
+import { alarmScheduler } from '@/lib/alarmScheduler';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -45,6 +46,9 @@ export default function RootLayout() {
 
       // Initialize notification listeners
       notificationManager.setupNotificationListeners();
+
+      // Start the alarm scheduler
+      alarmScheduler.start();
     }
   }, [loaded]);
 
@@ -68,6 +72,8 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="alarm-creation" options={{ headerShown: false }} />
+          <Stack.Screen name="alarm-preview" options={{ headerShown: false }} />
+          <Stack.Screen name="alarm-ringing" options={{ headerShown: false }} />
           <Stack.Screen name="timer" options={{ headerShown: false }} />
           <Stack.Screen name="stopwatch" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />

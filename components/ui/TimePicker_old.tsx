@@ -9,7 +9,6 @@ import {
   FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  ViewStyle,
 } from 'react-native';
 import { Typography, Spacing, BorderRadius } from '../../constants/Design';
 import { useTheme } from '../../hooks/useTheme';
@@ -18,7 +17,7 @@ interface TimePickerProps {
   value: Date;
   onChange: (date: Date) => void;
   mode?: '12h' | '24h';
-  style?: ViewStyle;
+  style?: any;
   testID?: string;
 }
 
@@ -43,34 +42,34 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
   const flatListRef = useRef<FlatList>(null);
   const isScrolling = useRef(false);
   const lastSelectedIndex = useRef(selectedIndex);
-
+  
   // Create infinite data array by repeating the items multiple times
   const REPEAT_COUNT = 1000; // Large enough for smooth infinite scroll
   const MIDDLE_INDEX = Math.floor(REPEAT_COUNT / 2) * items.length;
-
+  
   const infiniteData = useRef<string[]>([]);
   const infiniteItems = useRef<{ value: string; originalIndex: number }[]>([]);
-
+  
   // Generate infinite data array
   useEffect(() => {
     const newInfiniteData: string[] = [];
     const newInfiniteItems: { value: string; originalIndex: number }[] = [];
-
+    
     for (let i = 0; i < REPEAT_COUNT; i++) {
       items.forEach((item, index) => {
         newInfiniteData.push(item);
         newInfiniteItems.push({ value: item, originalIndex: index });
       });
     }
-
+    
     infiniteData.current = newInfiniteData;
     infiniteItems.current = newInfiniteItems;
   }, [items]);
 
   // Get the initial scroll position (middle of infinite array + selected offset)
-  const getInitialScrollIndex = useCallback(() => {
+  const getInitialScrollIndex = () => {
     return MIDDLE_INDEX + selectedIndex;
-  }, [MIDDLE_INDEX, selectedIndex]);
+  };
 
   // Convert infinite index to original item index
   const getOriginalIndex = (infiniteIndex: number) => {
@@ -84,11 +83,7 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
 
   // Snap to selected index on mount or when selectedIndex changes externally
   useEffect(() => {
-    if (
-      !isScrolling.current &&
-      flatListRef.current &&
-      lastSelectedIndex.current !== selectedIndex
-    ) {
+    if (!isScrolling.current && flatListRef.current && lastSelectedIndex.current !== selectedIndex) {
       const targetIndex = getInitialScrollIndex();
       flatListRef.current.scrollToOffset({
         offset: targetIndex * itemHeight,
@@ -96,14 +91,14 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
       });
       lastSelectedIndex.current = selectedIndex;
     }
-  }, [selectedIndex, itemHeight, items.length, getInitialScrollIndex]);
+  }, [selectedIndex, itemHeight, items.length]);
 
   // Handle scroll end and snap to nearest item
   const onMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const centerIndex = getCenterIndexFromOffset(offsetY);
     const originalIndex = getOriginalIndex(centerIndex);
-
+    
     if (originalIndex !== selectedIndex) {
       lastSelectedIndex.current = originalIndex;
       onIndexChange(originalIndex);
@@ -119,11 +114,11 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
   // Handle scroll during momentum for smoother updates
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!isScrolling.current) return;
-
+    
     const offsetY = event.nativeEvent.contentOffset.y;
     const centerIndex = getCenterIndexFromOffset(offsetY);
     const originalIndex = getOriginalIndex(centerIndex);
-
+    
     if (originalIndex !== lastSelectedIndex.current) {
       lastSelectedIndex.current = originalIndex;
       // Don't call onIndexChange during scroll to avoid performance issues
@@ -135,13 +130,13 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
     const currentScrollIndex = getInitialScrollIndex();
     const distance = Math.abs(index - currentScrollIndex);
     const isCenter = distance <= 0;
-
+    
     // Calculate opacity and scale based on distance from center
     const maxDistance = Math.floor(visibleItems / 2) + 1;
     const normalizedDistance = Math.min(distance, maxDistance);
-    const opacity = Math.max(0.3, 1 - normalizedDistance * 0.25);
+    const opacity = Math.max(0.3, 1 - (normalizedDistance * 0.25));
     const scale = isCenter ? 1 : 0.9;
-
+    
     return (
       <Pressable
         style={[
@@ -216,9 +211,7 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
       />
     </View>
   );
-};
-
-export const TimePicker: React.FC<TimePickerProps> = ({
+};export const TimePicker: React.FC<TimePickerProps> = ({
   value,
   onChange,
   mode = '12h',
@@ -250,17 +243,14 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   };
 
   // Convert display hour back to 24h format
-  const get24Hour = useCallback(
-    (displayHour: number, period: string) => {
-      if (mode === '24h') return displayHour;
-      if (period === 'AM') {
-        return displayHour === 12 ? 0 : displayHour;
-      } else {
-        return displayHour === 12 ? 12 : displayHour + 12;
-      }
-    },
-    [mode]
-  );
+  const get24Hour = (displayHour: number, period: string) => {
+    if (mode === '24h') return displayHour;
+    if (period === 'AM') {
+      return displayHour === 12 ? 0 : displayHour;
+    } else {
+      return displayHour === 12 ? 12 : displayHour + 12;
+    }
+  };
 
   // Update parent when time changes
   useEffect(() => {
@@ -287,6 +277,38 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       <View style={styles.wheelContainer}>
         <TimeWheel
           items={hourItems}
+          selectedIndex={mode === '12h' ? getDisplayHour(hours) - 1 : hours}
+          onIndexChange={handleHourChange}
+          itemHeight={itemHeight}
+          visibleItems={visibleItems}
+          testID={`${testID}-hours`}
+        />
+
+        <Text style={[styles.separator, { color: colors.text }]}>:</Text>
+
+        <TimeWheel
+          items={minuteItems}
+          selectedIndex={minutes}
+          onIndexChange={handleMinuteChange}
+          itemHeight={itemHeight}
+          visibleItems={visibleItems}
+          testID={`${testID}-minutes`}
+        />
+
+        {mode === '12h' && (
+          <TimeWheel
+            items={periodItems}
+            selectedIndex={period === 'AM' ? 0 : 1}
+            onIndexChange={handlePeriodChange}
+            itemHeight={itemHeight}
+            visibleItems={visibleItems}
+            testID={`${testID}-period`}
+          />
+        )}
+      </View>
+    </View>
+  );
+};
           selectedIndex={mode === '12h' ? getDisplayHour(hours) - 1 : hours}
           onIndexChange={handleHourChange}
           itemHeight={itemHeight}
@@ -354,6 +376,9 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   wheelItem: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,

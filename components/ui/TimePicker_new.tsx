@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -68,9 +68,9 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
   }, [items]);
 
   // Get the initial scroll position (middle of infinite array + selected offset)
-  const getInitialScrollIndex = useCallback(() => {
+  const getInitialScrollIndex = () => {
     return MIDDLE_INDEX + selectedIndex;
-  }, [MIDDLE_INDEX, selectedIndex]);
+  };
 
   // Convert infinite index to original item index
   const getOriginalIndex = (infiniteIndex: number) => {
@@ -96,7 +96,7 @@ const TimeWheel: React.FC<TimeWheelProps> = ({
       });
       lastSelectedIndex.current = selectedIndex;
     }
-  }, [selectedIndex, itemHeight, items.length, getInitialScrollIndex]);
+  }, [selectedIndex, itemHeight, items.length]);
 
   // Handle scroll end and snap to nearest item
   const onMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -250,17 +250,14 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   };
 
   // Convert display hour back to 24h format
-  const get24Hour = useCallback(
-    (displayHour: number, period: string) => {
-      if (mode === '24h') return displayHour;
-      if (period === 'AM') {
-        return displayHour === 12 ? 0 : displayHour;
-      } else {
-        return displayHour === 12 ? 12 : displayHour + 12;
-      }
-    },
-    [mode]
-  );
+  const get24Hour = (displayHour: number, period: string) => {
+    if (mode === '24h') return displayHour;
+    if (period === 'AM') {
+      return displayHour === 12 ? 0 : displayHour;
+    } else {
+      return displayHour === 12 ? 12 : displayHour + 12;
+    }
+  };
 
   // Update parent when time changes
   useEffect(() => {

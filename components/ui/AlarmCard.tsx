@@ -11,10 +11,11 @@ import { Switch } from './Switch';
 interface AlarmCardProps {
   alarm: Alarm;
   onToggle: (id: string, enabled: boolean) => void;
-  onPress: (alarm: Alarm) => void;
+  onPress?: (alarm: Alarm) => void;
   onDelete: (id: string) => void;
-  onEdit?: (alarm: Alarm) => void;
   onSkip?: (id: string) => void;
+  onPreview?: (id: string) => void;
+  onDuplicate?: (alarm: Alarm) => void;
   style?: Record<string, unknown>;
   testID?: string;
 }
@@ -24,8 +25,9 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
   onToggle,
   onPress,
   onDelete,
-  onEdit,
   onSkip,
+  onPreview,
+  onDuplicate,
   style,
   testID = 'alarm-card',
 }) => {
@@ -40,7 +42,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
 
     const activeDays = days.filter((day) => alarm.repeat[day as keyof typeof alarm.repeat]);
 
-    if (activeDays.length === 0) return 'Never';
+    if (activeDays.length === 0) return 'One Time'; // Changed from 'Never'
     if (activeDays.length === 7) return 'Every day';
     if (activeDays.length === 5 && !alarm.repeat.saturday && !alarm.repeat.sunday) {
       return 'Weekdays';
@@ -60,18 +62,27 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
   };
 
   const handlePress = () => {
-    onPress(alarm);
+    onPress?.(alarm);
   };
 
   const handleOptionsPress = () => {
     setShowOptionsDropdown(!showOptionsDropdown);
   };
 
-  const handleEdit = () => {
+  const handlePreview = () => {
     setShowOptionsDropdown(false);
-    if (onEdit) {
-      onEdit(alarm);
+    if (onPreview) {
+      onPreview(alarm.id);
     }
+    // TODO: Implement preview alarm functionality - play sound for 3 seconds
+  };
+
+  const handleDuplicate = () => {
+    setShowOptionsDropdown(false);
+    if (onDuplicate) {
+      onDuplicate(alarm);
+    }
+    // TODO: Implement duplicate alarm functionality - create copy with same settings
   };
 
   const handleDelete = () => {
@@ -91,6 +102,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
     if (onSkip) {
       onSkip(alarm.id);
     }
+    // TODO: Implement skip once functionality - disable alarm for next occurrence only
   };
 
   return (
@@ -102,15 +114,21 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
 
       <View style={[styles.container, style]}>
         <Pressable
-          style={[
+          style={({ pressed }) => [
             styles.card,
             {
               backgroundColor: colors.surface,
               borderColor: colors.border,
+              opacity: pressed ? 0.8 : 1,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
             },
           ]}
           onPress={handlePress}
           testID={testID}
+          android_ripple={{
+            color: colors.primary + '20',
+            borderless: false,
+          }}
         >
           <View style={styles.content}>
             {/* Time Display */}
@@ -227,10 +245,18 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
           >
             <Pressable
               style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
-              onPress={handleEdit}
+              onPress={handlePreview}
             >
-              <Ionicons name="create-outline" size={18} color={colors.text} />
-              <Text style={[styles.dropdownText, { color: colors.text }]}>Edit</Text>
+              <Ionicons name="play-outline" size={18} color={colors.text} />
+              <Text style={[styles.dropdownText, { color: colors.text }]}>Preview</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
+              onPress={handleDuplicate}
+            >
+              <Ionicons name="copy-outline" size={18} color={colors.text} />
+              <Text style={[styles.dropdownText, { color: colors.text }]}>Duplicate</Text>
             </Pressable>
 
             <Pressable
@@ -238,7 +264,7 @@ export const AlarmCard: React.FC<AlarmCardProps> = ({
               onPress={handleSkip}
             >
               <Ionicons name="play-skip-forward-outline" size={18} color={colors.text} />
-              <Text style={[styles.dropdownText, { color: colors.text }]}>Skip Next</Text>
+              <Text style={[styles.dropdownText, { color: colors.text }]}>Skip Once</Text>
             </Pressable>
 
             <Pressable

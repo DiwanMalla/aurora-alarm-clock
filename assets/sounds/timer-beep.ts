@@ -6,6 +6,6 @@ export const TIMER_BEEP_SOUND =
 export const playBeepSound = () => {
   // For now, we'll just use Alert as a placeholder
   // In a real implementation, you'd use expo-av or react-native-sound
-  // eslint-disable-next-line no-undef
+
   console.log('🔔 Timer beep!');
 };

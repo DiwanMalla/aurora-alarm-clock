@@ -6,7 +6,6 @@ import {
   Alert,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,8 +15,6 @@ import { useAlarms } from '@/hooks/useStores';
 import { Typography, Spacing, BorderRadius, Colors } from '@/constants/Design';
 import { Alarm } from '@/stores/alarmStore';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface AlarmCreationModalEnhancedProps {
   visible: boolean;
@@ -277,7 +274,7 @@ const AlarmCreationModalEnhanced: React.FC<AlarmCreationModalEnhancedProps> = ({
 
   if (!visible) return null;
 
-  const dynamicStyles = createStyles(colors, isDark);
+  const dynamicStyles = createStyles(colors);
 
   return (
     <SafeAreaView style={dynamicStyles.container}>
@@ -412,7 +409,7 @@ const AlarmCreationModalEnhanced: React.FC<AlarmCreationModalEnhancedProps> = ({
   );
 };
 
-const createStyles = (colors: typeof Colors.light, isDark: boolean) =>
+const createStyles = (colors: typeof Colors.light) =>
   StyleSheet.create({
     container: {
       flex: 1,

@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Label } from '@/components/ui';
 import { useTheme } from '@/hooks/useTheme';
 import { Spacing } from '@/constants/Design';
-import { audioManager } from '@/lib/simpleAudioManager';
+import { workingAudioManager } from '@/lib/workingAudioManager';
 import { notificationManager } from '@/lib/notificationManager';
 import * as Haptics from 'expo-haptics';
 
@@ -46,7 +46,7 @@ export default function TimerScreen() {
             setIsRunning(false);
             setIsPaused(false);
             // Play timer sound and add strong haptic feedback
-            audioManager.playTimerSound().catch(console.error);
+            workingAudioManager.playTimerSound().catch(console.error);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {
               // Ignore haptic errors - not critical
             });

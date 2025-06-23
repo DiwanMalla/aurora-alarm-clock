@@ -1,21 +1,62 @@
-/* global jest */
 import 'react-native-gesture-handler/jestSetup';
-import ReanimatedMock from 'react-native-reanimated/mock';
 
 // Mock reanimated
 jest.mock('react-native-reanimated', () => {
-  // The mock for `call` immediately calls the callback which is incorrect
-  // So we override it with a no-op
-  ReanimatedMock.default.call = () => {};
-
-  return ReanimatedMock;
+  return {
+    default: {
+      call: jest.fn(),
+      Value: jest.fn(),
+      event: jest.fn(() => jest.fn()),
+      add: jest.fn(),
+      eq: jest.fn(),
+      set: jest.fn(),
+      cond: jest.fn(),
+      interpolate: jest.fn(),
+      View: jest.fn(() => 'Animated.View'),
+      Extrapolate: { CLAMP: jest.fn() },
+      Transition: {
+        Together: 'Together',
+        Out: 'Out',
+        In: 'In',
+      },
+      Easing: {
+        in: jest.fn(),
+        out: jest.fn(),
+        inOut: jest.fn(),
+      },
+    },
+    Easing: {
+      in: jest.fn(),
+      out: jest.fn(),
+      inOut: jest.fn(),
+    },
+    Extrapolate: {
+      CLAMP: jest.fn(),
+    },
+  };
 });
 
 // Mock AsyncStorage
-import AsyncStorageMock from '@react-native-async-storage/async-storage/jest/async-storage-mock';
-
-// Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () => AsyncStorageMock);
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  default: {
+    getItem: jest.fn(() => Promise.resolve(null)),
+    setItem: jest.fn(() => Promise.resolve()),
+    removeItem: jest.fn(() => Promise.resolve()),
+    clear: jest.fn(() => Promise.resolve()),
+    getAllKeys: jest.fn(() => Promise.resolve([])),
+    multiGet: jest.fn(() => Promise.resolve([])),
+    multiSet: jest.fn(() => Promise.resolve()),
+    multiRemove: jest.fn(() => Promise.resolve()),
+  },
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+  removeItem: jest.fn(() => Promise.resolve()),
+  clear: jest.fn(() => Promise.resolve()),
+  getAllKeys: jest.fn(() => Promise.resolve([])),
+  multiGet: jest.fn(() => Promise.resolve([])),
+  multiSet: jest.fn(() => Promise.resolve()),
+  multiRemove: jest.fn(() => Promise.resolve()),
+}));
 // Mock Expo modules
 jest.mock('expo-router', () => ({
   useRouter: () => ({

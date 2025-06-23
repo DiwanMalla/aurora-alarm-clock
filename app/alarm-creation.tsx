@@ -7,20 +7,23 @@ import {
   TouchableOpacity,
   StatusBar,
   TextInput,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useAlarms } from '@/hooks/useStores';
 import { Typography, Spacing, BorderRadius, Colors } from '@/constants/Design';
 import { Alarm } from '@/stores/alarmStore';
 import { Ionicons } from '@expo/vector-icons';
-import { audioManager, AVAILABLE_SOUNDS } from '@/lib/simpleAudioManager';
+import { workingAudioManager, AVAILABLE_SOUNDS, SoundOption } from '@/lib/workingAudioManager';
 
 // Type declaration for console
 declare const console: {
   error: (message?: string, ...optionalParams: unknown[]) => void;
 };
+declare const setTimeout: (callback: () => void, ms: number) => number;
+declare const clearTimeout: (timeoutId: number) => void;
 
 // Custom iPhone-style Wheel Picker Component
 const WheelPicker = ({
@@ -41,6 +44,18 @@ const WheelPicker = ({
   const { colors } = useTheme();
   const containerHeight = itemHeight * visibleItems;
   const paddingVertical = (containerHeight - itemHeight) / 2;
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  // Scroll to selected index on mount and when selectedIndex changes
+  React.useEffect(() => {
+    if (scrollViewRef.current) {
+      const scrollToPosition = selectedIndex * itemHeight;
+      scrollViewRef.current.scrollTo({
+        y: scrollToPosition,
+        animated: false, // No animation on initial load
+      });
+    }
+  }, [selectedIndex, itemHeight]);
 
   const wheelStyles = StyleSheet.create({
     container: {
@@ -93,6 +108,7 @@ const WheelPicker = ({
   return (
     <View style={wheelStyles.container}>
       <ScrollView
+        ref={scrollViewRef}
         style={wheelStyles.scrollView}
         showsVerticalScrollIndicator={false}
         snapToInterval={itemHeight}
@@ -156,57 +172,180 @@ const DAYS = [
 
 export default function AlarmCreationScreen() {
   const { colors, isDark } = useTheme();
-  const { addAlarm } = useAlarms();
+  const { addAlarm, updateAlarm } = useAlarms();
+  const params = useLocalSearchParams();
 
   // Get editing alarm from router params (if any)
-  // const editingAlarm = router.params?.editingAlarm as Alarm | undefined;
+  const editingAlarmString = params.editingAlarm as string;
+  const editingAlarm: Alarm | undefined = editingAlarmString
+    ? JSON.parse(editingAlarmString)
+    : undefined;
 
   // Get current time for initial values
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
 
-  // Convert to 12-hour format for initial values
-  const initialHour = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
-  const initialAmPm = currentHour >= 12 ? 1 : 0; // 0 = AM, 1 = PM
+  // If editing, use alarm's time; otherwise use current time
+  let initialHour: number;
+  let initialMinute: number;
+  let initialAmPm: number;
 
-  // Form state with current time as default
+  if (editingAlarm) {
+    const [hourStr, minuteStr] = editingAlarm.time.split(':');
+    const hour24 = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+    initialHour = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+    initialMinute = minute;
+    initialAmPm = hour24 >= 12 ? 1 : 0; // 0 = AM, 1 = PM
+  } else {
+    // Convert current time to 12-hour format for initial values
+    initialHour = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+    initialMinute = currentMinute;
+    initialAmPm = currentHour >= 12 ? 1 : 0; // 0 = AM, 1 = PM
+  }
+
+  // Form state with proper initial values
   const [selectedHour, setSelectedHour] = useState(initialHour);
-  const [selectedMinute, setSelectedMinute] = useState(currentMinute);
+  const [selectedMinute, setSelectedMinute] = useState(initialMinute);
   const [selectedAmPm, setSelectedAmPm] = useState(initialAmPm);
-  const [label, setLabel] = useState('Alarm'); // Made editable
-  const [repeat, setRepeat] = useState({
-    sunday: false,
-    monday: false,
-    tuesday: false,
-    wednesday: false,
-    thursday: false,
-    friday: false,
-    saturday: false,
-  });
+  const [label, setLabel] = useState(editingAlarm?.label || 'Alarm');
+  const [repeat, setRepeat] = useState(
+    editingAlarm?.repeat || {
+      sunday: false,
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+    }
+  );
   const [isDailyEnabled, setIsDailyEnabled] = useState(false);
-  const [volume, setVolume] = useState(0.8); // Made editable with working controls
-  const [vibrationEnabled, setVibrationEnabled] = useState(true);
-  const [selectedRingtone, setSelectedRingtone] = useState(AVAILABLE_SOUNDS[0]);
-  const [snoozeEnabled, setSnoozeEnabled] = useState(true);
-  const [snoozeDuration] = useState(5); // minutes
+  const [volume, setVolume] = useState(editingAlarm?.sound?.volume || 80); // Use saved volume or default to 80
+  const [vibrationEnabled, setVibrationEnabled] = useState(editingAlarm?.vibration.enabled ?? true);
+  const [selectedRingtone, setSelectedRingtone] = useState(
+    editingAlarm?.sound || AVAILABLE_SOUNDS[0]
+  );
+  const [snoozeEnabled, setSnoozeEnabled] = useState(editingAlarm?.snooze.enabled ?? true);
+  const [snoozeDuration] = useState(editingAlarm?.snooze.duration || 5); // minutes
   const [fadeInEnabled, setFadeInEnabled] = useState(false);
   const [alarmLabelEnabled, setAlarmLabelEnabled] = useState(true);
+  const [showSoundPicker, setShowSoundPicker] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [volumePreviewTimeout, setVolumePreviewTimeout] = useState<number | null>(null);
 
   // Handle sound selection and testing
   const handleSoundSelection = () => {
-    const currentIndex = AVAILABLE_SOUNDS.findIndex((s) => s.id === selectedRingtone.id);
+    setShowSoundPicker(true);
+  };
 
-    // For now, cycle through available sounds
-    const nextIndex = (currentIndex + 1) % AVAILABLE_SOUNDS.length;
-    const nextSound = AVAILABLE_SOUNDS[nextIndex];
+  const handleSoundPick = async (sound: SoundOption) => {
+    setSelectedRingtone(sound);
+    setShowSoundPicker(false);
 
-    setSelectedRingtone(nextSound);
+    // Play the selected sound for preview at current volume
+    try {
+      setCurrentlyPlaying(sound.id);
+      await workingAudioManager.playAlarm(sound.id, {
+        loop: false,
+        volume: volume / 100, // Convert to 0-1 range
+        duration: 5000,
+      });
 
-    // Test the new sound
-    audioManager.playTestSound(nextSound.id).catch((error) => {
-      console.error('Failed to test sound:', error);
-    });
+      // Stop after 5 seconds
+      setTimeout(async () => {
+        await workingAudioManager.stopAlarm();
+        setCurrentlyPlaying(null);
+      }, 5000);
+    } catch (error) {
+      console.error('Failed to play sound:', error);
+    }
+  };
+
+  const stopCurrentSound = async () => {
+    try {
+      await workingAudioManager.stopAlarm();
+      setCurrentlyPlaying(null);
+    } catch (error) {
+      console.error('Failed to stop sound:', error);
+    }
+  };
+
+  // Simple volume preview function
+  const playVolumePreview = (volumeLevel: number) => {
+    if (volumeLevel > 0) {
+      try {
+        // Clear any existing timeout
+        if (volumePreviewTimeout) {
+          clearTimeout(volumePreviewTimeout);
+        }
+
+        // Stop any current audio and play at new volume
+        workingAudioManager.stopAlarm();
+        const soundId = 'id' in selectedRingtone ? selectedRingtone.id : selectedRingtone.name;
+        workingAudioManager.playAlarm(soundId, {
+          loop: false,
+          volume: volumeLevel / 100,
+          duration: 5000,
+        });
+
+        // Set timeout to stop after 5 seconds
+        const timeout = setTimeout(async () => {
+          await workingAudioManager.stopAlarm();
+          setVolumePreviewTimeout(null);
+        }, 5000);
+
+        setVolumePreviewTimeout(timeout);
+      } catch (error) {
+        console.error('Failed to play volume preview:', error);
+      }
+    }
+  };
+
+  // Handle volume slider touch and drag
+  const handleVolumeSliderTouch = (event: { nativeEvent: { locationX: number } }) => {
+    const { locationX } = event.nativeEvent;
+    const sliderWidth = 180; // Adjusted for better precision
+    const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
+    const newVolume = Math.round(percentage * 100);
+    setVolume(newVolume);
+  };
+
+  // Create pan responder for volume slider with smooth dragging
+  const volumePanResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      // Handle initial touch - just set volume, don't play yet
+      handleVolumeSliderTouch(evt);
+    },
+    onPanResponderMove: (evt) => {
+      // Handle drag - smooth real-time updates, no audio during drag
+      handleVolumeSliderTouch(evt);
+    },
+    onPanResponderRelease: (evt) => {
+      // Play preview when user finishes adjusting
+      const { locationX } = evt.nativeEvent;
+      const sliderWidth = 180;
+      const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
+      const finalVolume = Math.round(percentage * 100);
+      setVolume(finalVolume);
+      playVolumePreview(finalVolume);
+    },
+  });
+
+  // Get appropriate volume icon based on volume level
+  const getVolumeIcon = () => {
+    if (volume === 0) return 'volume-mute-outline';
+    if (volume < 30) return 'volume-low-outline';
+    if (volume < 70) return 'volume-medium-outline';
+    return 'volume-high-outline';
+  };
+
+  // Helper function to get sound ID for comparison
+  const getSoundId = (sound: SoundOption | typeof selectedRingtone): string => {
+    return 'id' in sound ? sound.id : sound.name;
   };
   const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -259,9 +398,10 @@ export default function AlarmCreationScreen() {
       repeat: finalRepeat,
       sound: {
         type: 'built-in' as const,
-        uri: 'built-in://' + selectedRingtone.id,
+        uri:
+          'built-in://' + ('id' in selectedRingtone ? selectedRingtone.id : selectedRingtone.name),
         name: selectedRingtone.name,
-        volume: volume * 100,
+        volume: volume, // Save as whole number (0-100)
       },
       snooze: {
         enabled: true,
@@ -280,10 +420,21 @@ export default function AlarmCreationScreen() {
       updatedAt: new Date(),
     };
 
-    addAlarm({
-      ...alarmData,
-      id: Date.now().toString(),
-    } as Alarm);
+    if (editingAlarm) {
+      // Update existing alarm
+      updateAlarm(editingAlarm.id, {
+        ...alarmData,
+        id: editingAlarm.id,
+        createdAt: editingAlarm.createdAt,
+        updatedAt: new Date(),
+      } as Alarm);
+    } else {
+      // Add new alarm
+      addAlarm({
+        ...alarmData,
+        id: Date.now().toString(),
+      } as Alarm);
+    }
 
     router.back();
   };
@@ -577,15 +728,56 @@ export default function AlarmCreationScreen() {
       },
       volumeSlider: {
         flex: 1,
-        height: 4,
-        backgroundColor: colors.surface,
-        borderRadius: 2,
+        height: 40, // Even larger touch area for better UX
+        borderRadius: 20,
         position: 'relative',
+        justifyContent: 'center',
+        marginHorizontal: Spacing.xs,
+        paddingHorizontal: 10, // Extra padding for better thumb positioning
       },
       volumeTrack: {
-        height: 4,
+        height: 8, // Thicker track for better visibility
         backgroundColor: colors.primary,
-        borderRadius: 2,
+        borderRadius: 4,
+        position: 'absolute',
+        left: 10,
+        top: '50%',
+        transform: [{ translateY: -4 }],
+      },
+      volumeText: {
+        ...Typography.caption1,
+        marginLeft: Spacing.sm,
+        minWidth: 35,
+        textAlign: 'right',
+        fontWeight: '700', // Bolder for better readability
+        color: colors.primary, // Use primary color for emphasis
+      },
+      volumeTrackBackground: {
+        position: 'absolute',
+        top: '50%',
+        left: 10,
+        right: 10,
+        height: 8,
+        backgroundColor: colors.border,
+        borderRadius: 4,
+        transform: [{ translateY: -4 }],
+        opacity: 0.3, // Subtle background track
+      },
+      volumeThumb: {
+        position: 'absolute',
+        top: '50%',
+        width: 24, // Even larger thumb for premium feel
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: colors.primary,
+        shadowColor: colors.text,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 8,
+        transform: [{ translateY: -12 }],
+        borderWidth: 3,
+        borderColor: colors.white,
       },
       toggleButton: {
         width: 44,
@@ -626,6 +818,65 @@ export default function AlarmCreationScreen() {
         paddingVertical: Spacing.sm,
         minHeight: 44,
       },
+      // Modal styles
+      modalOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: Colors.light.text + '80', // 50% opacity black
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+      },
+      soundPickerModal: {
+        width: '90%',
+        maxHeight: '70%',
+        borderRadius: BorderRadius.lg,
+        overflow: 'hidden',
+      },
+      modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: Spacing.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      modalTitle: {
+        ...Typography.title3,
+        fontWeight: 'bold',
+      },
+      soundList: {
+        maxHeight: 400,
+      },
+      soundItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: Spacing.md,
+        borderBottomWidth: 0.5,
+      },
+      soundInfo: {
+        flex: 1,
+      },
+      soundName: {
+        ...Typography.body,
+        fontWeight: '500',
+      },
+      soundDescription: {
+        ...Typography.caption1,
+        marginTop: Spacing.xs,
+      },
+      soundActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+      },
+      playButton: {
+        padding: Spacing.xs,
+      },
     });
 
   const styles = createStyles(colors);
@@ -639,7 +890,9 @@ export default function AlarmCreationScreen() {
         <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
           <Ionicons name="close" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ring in {getTimeUntilAlarm()}</Text>
+        <Text style={styles.headerTitle}>
+          {editingAlarm ? `Ring in ${getTimeUntilAlarm()}` : `Ring in ${getTimeUntilAlarm()}`}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -676,7 +929,11 @@ export default function AlarmCreationScreen() {
         {/* Repeat Days */}
         <View style={styles.section}>
           <View style={styles.repeatHeader}>
-            <Text style={styles.sectionTitle}>Repeat</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.sectionTitle} numberOfLines={2} ellipsizeMode="tail">
+                {getSelectedDaysText()}
+              </Text>
+            </View>
             <TouchableOpacity style={styles.dailyCheckboxContainer} onPress={toggleDaily}>
               <Text style={styles.dailyLabel}>Daily</Text>
               <View style={[styles.dailyCheckbox, isDailyEnabled && styles.dailyCheckboxActive]}>
@@ -698,9 +955,7 @@ export default function AlarmCreationScreen() {
               </TouchableOpacity>
             ))}
           </View>
-
           {/* Show description when daily is enabled or show selected days */}
-          <Text style={styles.dailyDescription}>{getSelectedDaysText()}</Text>
         </View>
 
         {/* Controls */}
@@ -730,20 +985,54 @@ export default function AlarmCreationScreen() {
           <View style={styles.controlRow}>
             <Text style={styles.controlLabel}>Volume</Text>
             <View style={styles.volumeContainer}>
-              <TouchableOpacity onPress={() => setVolume(Math.max(0, volume - 0.1))}>
-                <Ionicons name="volume-mute" size={20} color={colors.textSecondary} />
+              {/* Volume icon on the left */}
+              <TouchableOpacity
+                onPress={() => {
+                  if (volume === 0) {
+                    setVolume(50);
+                    playVolumePreview(50);
+                  } else {
+                    setVolume(0);
+                    if (volumePreviewTimeout) {
+                      clearTimeout(volumePreviewTimeout);
+                      workingAudioManager.stopAlarm();
+                    }
+                  }
+                }}
+              >
+                <Ionicons
+                  name={getVolumeIcon()}
+                  size={24}
+                  color={volume === 0 ? colors.textSecondary : colors.primary}
+                />
               </TouchableOpacity>
-              <View style={styles.volumeSlider}>
+
+              {/* Draggable volume slider */}
+              <View style={styles.volumeSlider} {...volumePanResponder.panHandlers}>
+                <View style={styles.volumeTrackBackground} />
                 <View
                   style={[
                     styles.volumeTrack,
-                    { width: `${volume * 100}%`, backgroundColor: colors.primary },
+                    {
+                      width: `${Math.max(0, Math.min(100, volume))}%`,
+                      backgroundColor: colors.primary,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.volumeThumb,
+                    {
+                      left: `${Math.max(0, Math.min(100, volume))}%`,
+                      backgroundColor: colors.primary,
+                      transform: [{ translateX: -12 }, { translateY: -12 }], // Center the larger thumb perfectly
+                    },
                   ]}
                 />
               </View>
-              <TouchableOpacity onPress={() => setVolume(Math.min(1, volume + 0.1))}>
-                <Ionicons name="volume-high" size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
+
+              {/* Volume percentage with icon color */}
+              <Text style={[styles.volumeText, { color: colors.primary }]}>{volume}%</Text>
             </View>
           </View>
 
@@ -817,10 +1106,68 @@ export default function AlarmCreationScreen() {
         </View>
       </ScrollView>
 
+      {/* Sound Picker Modal */}
+      {showSoundPicker && (
+        <View style={styles.modalOverlay}>
+          <View style={[styles.soundPickerModal, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Choose Ringtone</Text>
+              <TouchableOpacity onPress={() => setShowSoundPicker(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.soundList} showsVerticalScrollIndicator={false}>
+              {AVAILABLE_SOUNDS.map((sound) => (
+                <TouchableOpacity
+                  key={sound.id}
+                  style={[
+                    styles.soundItem,
+                    { borderBottomColor: colors.border },
+                    getSoundId(selectedRingtone) === sound.id && {
+                      backgroundColor: colors.primaryLight,
+                    },
+                  ]}
+                  onPress={() => handleSoundPick(sound)}
+                >
+                  <View style={styles.soundInfo}>
+                    <Text style={[styles.soundName, { color: colors.text }]}>{sound.name}</Text>
+                    {sound.description && (
+                      <Text style={[styles.soundDescription, { color: colors.textSecondary }]}>
+                        {sound.description}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View style={styles.soundActions}>
+                    {currentlyPlaying === sound.id ? (
+                      <TouchableOpacity onPress={stopCurrentSound} style={styles.playButton}>
+                        <Ionicons name="stop" size={20} color={colors.primary} />
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => handleSoundPick(sound)}
+                        style={styles.playButton}
+                      >
+                        <Ionicons name="play" size={20} color={colors.primary} />
+                      </TouchableOpacity>
+                    )}
+
+                    {getSoundId(selectedRingtone) === sound.id && (
+                      <Ionicons name="checkmark" size={20} color={colors.primary} />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
       {/* Fixed Save Button */}
       <View style={styles.saveButtonContainer}>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save</Text>
+          <Text style={styles.saveButtonText}>{editingAlarm ? 'Update Alarm' : 'Save Alarm'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

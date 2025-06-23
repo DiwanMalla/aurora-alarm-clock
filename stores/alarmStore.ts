@@ -58,6 +58,7 @@ interface AlarmStore {
   dismissAlarm: () => void;
   getNextAlarm: () => Alarm | null;
   getAlarmsForToday: () => Alarm[];
+  getAlarmById: (id: string) => Alarm | null;
 }
 
 // Generate unique ID
@@ -240,6 +241,11 @@ export const useAlarmStore = create<AlarmStore>()(
             alarm.enabled &&
             (alarm.repeat[dayName] || !Object.values(alarm.repeat).some((day) => day))
         );
+      },
+
+      getAlarmById: (id) => {
+        const { alarms } = get();
+        return alarms.find((alarm) => alarm.id === id) || null;
       },
     }),
     {
