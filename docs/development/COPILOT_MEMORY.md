@@ -1,5 +1,7 @@
 # Daily Copilot Memory Log
 
+**Focus**: if you leave some function as a console or alert for future, then add a comment like `// TODO: Implement this feature` to indicate it needs to be completed later.
+
 ## Session Memory: 2025-06-21 (Week 4 - Phase 1)
 
 **Current Week**: Week 4  

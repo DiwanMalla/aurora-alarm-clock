@@ -2,7 +2,7 @@
 
 **Week:** 4 (June 21, 2025)  
 **Phase:** Phase 1 - Core Features & UI/UX Enhancements  
-**Focus:** Timer/Stopwatch Implementation + Audio/Notification Systems
+**Focus:** Timer/Stopwatch Implementation + Alarm System Enhancements + Audio Integration
 
 ## 🎯 Week 4 Objectives - COMPLETED ✅
 
@@ -19,18 +19,31 @@
 
    - Created comprehensive audio manager with expo-av
    - Added multiple sound options (System Default, Notification, Gentle, Classic, Digital)
-   - Integrated audio into Timer completion
+   - Integrated audio into Timer completion and alarm previews
    - Added sound testing functionality in alarm creation
    - Configured audio to play even in silent mode (critical for alarms!)
+   - Implemented real audio preview with 3-second playback
 
-3. ✅ **Notification System Implementation**
+3. ✅ **Alarm System Enhancements**
+
+   - Fixed time picker to properly center selected time for both edit and add modes
+   - Implemented sound selection modal with scrollable list
+   - Added real audio playback for sound previews
+   - Enhanced volume controls with visual percentage display
+   - Implemented duplicate alarm functionality
+   - Added hover effects for alarm cards
+   - Fixed "One Time" display instead of "Never" for non-repeating alarms
+   - Removed edit option from three-dot menu as requested
+   - Added preview and skip once options (preview functional, skip once TODO)
+
+4. ✅ **Notification System Implementation**
 
    - Created notification manager with expo-notifications
    - Added background notification scheduling for timers
    - Integrated notifications into app lifecycle
    - Added proper notification permissions and handlers
 
-4. ✅ **Testing Framework Setup**
+5. ✅ **Testing Framework Setup**
    - Created comprehensive testing checklist
    - Established testing methodology for all features
    - Set up device testing matrix
@@ -298,23 +311,27 @@
 ### 🎯 Alarm Creation Enhancements
 
 **✅ Current Time Default**: When clicking "Add Alarm", now displays current time instead of 7:00 AM
+
 - Automatically sets current hour/minute as initial values
 - Properly converts to 12-hour format with correct AM/PM
 - Much more user-friendly experience
 
 **✅ Editable Label Input**: Added proper alarm label functionality
+
 - Text input field with placeholder "Alarm name..."
 - Auto-capitalization and 50 character limit
 - Proper styling with theme colors and border
 - Replaces the unused static "Alarm" label
 
 **✅ Functional Volume Controls**: Volume slider now actually works!
+
 - Tap - and + icons to decrease/increase volume
 - Visual feedback with animated track width
 - Volume changes are saved with the alarm
 - Proper integration with alarm audio system
 
 **✅ Built-in OS Ringtones**: Real device ringtones available
+
 - Added iOS built-in sounds: Opening, Apex, Beacon, Bulletin, Chimes, Circuit, Constellation, Cosmic
 - System Default option uses device alarm sound
 - Proper sound testing when selecting ringtones
@@ -323,12 +340,14 @@
 ### 🎯 Three-Dot Menu Redesign
 
 **✅ Dropdown Instead of Modal**: Much better UX for alarm options
+
 - Shows compact dropdown menu below the three-dot button
 - No more full-screen modal covering everything
 - Options: Edit, Skip Next, Delete with proper icons
 - Auto-closes when clicking outside the menu
 
-**✅ Better Positioning**: 
+**✅ Better Positioning**:
+
 - Positioned relative to the button, not screen center
 - Proper z-index layering and shadow effects
 - Smaller, more focused interface
@@ -337,12 +356,14 @@
 ### 🔊 Audio System Improvements
 
 **✅ Real Ringtone Support**: Groundwork for actual device sounds
+
 - Built-in sound detection and handling
 - Fallback system for unsupported sounds
 - Enhanced AVAILABLE_SOUNDS array with real ringtone names
 - Audio testing functionality works with all sound types
 
-**✅ Better Sound Selection UX**: 
+**✅ Better Sound Selection UX**:
+
 - "Vibration System Default" changed to proper ringtone selection
 - Shows currently selected ringtone name
 - Option to test sounds before saving
@@ -351,16 +372,179 @@
 ### 📱 Technical Improvements
 
 **✅ Type Safety**: All new components properly typed
+
 - Proper TypeScript interfaces for new features
 - No unused variables or imports
 - Consistent code patterns throughout
 
 **✅ Theme Integration**: All new UI respects dark/light themes
+
 - Proper color usage from theme system
 - Consistent spacing and typography
 - Platform-appropriate styling
 
 **✅ Error Handling**: Robust error handling for all new features
+
 - Audio fallbacks if built-in sounds fail
 - Proper validation for text inputs
 - Graceful degradation for unsupported features
+
+## 📋 TODOs for Future Development
+
+### ⚠️ HIGH PRIORITY TODOs
+
+1. **Skip Once Functionality** (app/(tabs)/alarms.tsx, line 76)
+
+   ```typescript
+   // TODO: Implement skip once functionality - disable alarm for next occurrence only, then re-enable
+   const handleAlarmSkip = (id: string) => {
+     // Implementation needed:
+     // 1. Mark alarm as "skip next" in alarm store
+     // 2. When alarm would trigger, check skip flag
+     // 3. If skip flag is set, don't trigger and reset flag
+     // 4. Update UI to show "Will skip next" status
+   };
+   ```
+
+2. **Device Volume Integration** (app/alarm-creation.tsx)
+
+   ```typescript
+   // TODO: Add device volume button integration
+   // Consider using expo-av's system volume controls
+   // Add haptic feedback for volume changes
+   // Sync app volume with system volume
+   ```
+
+3. **Enhanced Audio Manager**
+   ```typescript
+   // TODO: Add fade-in/fade-out functionality
+   // TODO: Add custom sound file support
+   // TODO: Add Spotify integration for alarm sounds
+   // TODO: Implement smart wake-up with gradual volume increase
+   ```
+
+### 🔧 MEDIUM PRIORITY TODOs
+
+4. **Notification Enhancements**
+
+   ```typescript
+   // TODO: Add critical alert support for iOS (bypasses Do Not Disturb)
+   // TODO: Implement persistent notifications that can't be dismissed
+   // TODO: Add notification actions (Snooze, Dismiss)
+   ```
+
+5. **Smart Features**
+
+   ```typescript
+   // TODO: Implement smart wake-up algorithm
+   // TODO: Add weather-based alarm adjustments
+   // TODO: Implement sleep cycle detection
+   ```
+
+6. **Performance Optimizations**
+   ```typescript
+   // TODO: Optimize WheelPicker for smoother scrolling
+   // TODO: Add React.memo to expensive components
+   // TODO: Implement virtualization for large alarm lists
+   ```
+
+### 🎨 LOW PRIORITY TODOs
+
+7. **Advanced UI Features**
+
+   ```typescript
+   // TODO: Add swipe-to-dismiss for modal overlays
+   // TODO: Implement drag-and-drop for alarm reordering
+   // TODO: Add animated transitions between screens
+   ```
+
+8. **Accessibility Improvements**
+   ```typescript
+   // TODO: Add comprehensive VoiceOver support
+   // TODO: Implement high contrast mode support
+   // TODO: Add dynamic type size support
+   ```
+
+### 💾 Memory & Documentation TODOs
+
+9. **Code Documentation**
+
+   ```typescript
+   // TODO: Add JSDoc comments to all public functions
+   // TODO: Create API documentation for audio manager
+   // TODO: Document alarm store state management patterns
+   ```
+
+10. **Testing TODOs**
+    ```typescript
+    // TODO: Add integration tests for audio playback
+    // TODO: Create end-to-end tests for alarm flow
+    // TODO: Add performance benchmarks for time picker
+    ```
+
+## 🎵 Audio System Status (FUNCTIONAL ✅)
+
+### Implemented Features:
+
+- ✅ Real audio playback with expo-av
+- ✅ Sound selection modal with scrollable list
+- ✅ 3-second audio previews for alarm sounds
+- ✅ Volume controls with visual percentage display
+- ✅ Audio plays even in silent mode (critical for alarms)
+- ✅ Multiple sound options (System Default, iOS ringtones, etc.)
+
+### Sound Selection Flow:
+
+1. User taps sound row in alarm creation
+2. Modal opens with scrollable sound list
+3. Tapping a sound plays 3-second preview
+4. Checkmark shows selected sound
+5. Play/stop buttons for audio control
+
+### Audio Integration:
+
+- Timer completion: Plays selected alarm sound
+- Alarm preview: Plays alarm sound for 3 seconds
+- Sound selection: Instant audio preview
+- Volume control: Real-time volume adjustment
+
+## 🔄 Time Picker Enhancements (FIXED ✅)
+
+### WheelPicker Improvements:
+
+- ✅ Selected time properly centered in picker wheel
+- ✅ Edit mode shows alarm's current time centered
+- ✅ Add mode shows current time centered
+- ✅ Smooth scrolling with snap-to-interval
+- ✅ Visual selection indicators (top/bottom lines)
+
+### Implementation Details:
+
+- Uses ScrollView with snapToInterval for native feel
+- Proper contentOffset calculation for centering
+- Item opacity changes for visual hierarchy
+- Configurable width and visible items
+
+## 🔧 Alarm System Enhancements (COMPLETED ✅)
+
+### Menu Changes:
+
+- ❌ Removed "Edit" option from three-dot menu
+- ✅ Added "Preview" option (functional - plays sound for 3s)
+- ✅ Added "Duplicate" option (functional - creates copy)
+- ✅ Renamed "Skip Next" to "Skip Once" (TODO: implement logic)
+- ✅ Keep "Delete" option (functional)
+
+### Visual Improvements:
+
+- ✅ "One Time" display instead of "Never" for non-repeating alarms
+- ✅ Hover effects on alarm cards (android_ripple, opacity changes)
+- ✅ Enhanced volume controls with percentage display
+- ✅ Better spacing and touch targets
+
+### Functional Features:
+
+- ✅ Direct alarm editing (click alarm opens edit screen)
+- ✅ Real duplicate functionality (creates copy with "Copy" suffix)
+- ✅ Audio preview in three-dot menu
+- 🚧 Skip once functionality (marked as TODO)
