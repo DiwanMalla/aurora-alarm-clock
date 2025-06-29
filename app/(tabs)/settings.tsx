@@ -87,7 +87,8 @@ const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) =>
 export default function SettingsScreen() {
   const { settings, setTimeFormat } = useAppSettings();
   const { theme, setTheme, colors } = useTheme();
-  const { notifications, updateNotificationSettings } = useNotificationSettings();
+  const { notifications, updateNotificationSettings, toggleNotifications } =
+    useNotificationSettings();
   const { defaultAlarmVolume, fadeInDuration, defaultSnoozeTime } = useAudioSettings();
 
   const handleThemePress = () => {
@@ -176,53 +177,58 @@ export default function SettingsScreen() {
         {/* Notifications Section */}
         <SettingsSection title="Notifications">
           <SettingsItem
-            title="Alarm Notifications"
-            subtitle="Show alarm notifications"
+            title="App Notifications"
+            subtitle="Enable all app notifications"
             icon="notifications-outline"
             rightComponent={
-              <Switch
-                value={notifications.alarmNotifications}
-                onValueChange={(value) => updateNotificationSettings({ alarmNotifications: value })}
-              />
+              <Switch value={notifications.enabled} onValueChange={toggleNotifications} />
             }
             showChevron={false}
           />
-          <SettingsItem
-            title="Bedtime Reminder"
-            subtitle="Remind me when it's bedtime"
-            icon="moon-outline"
-            rightComponent={
-              <Switch
-                value={notifications.bedtimeReminder}
-                onValueChange={(value) => updateNotificationSettings({ bedtimeReminder: value })}
+
+          {/* Sub-toggles only shown when notifications are enabled */}
+          {notifications.enabled && (
+            <>
+              <SettingsItem
+                title="Bedtime Reminder"
+                subtitle="Remind me when it's bedtime"
+                icon="moon-outline"
+                rightComponent={
+                  <Switch
+                    value={notifications.bedtimeReminder}
+                    onValueChange={(value) =>
+                      updateNotificationSettings({ bedtimeReminder: value })
+                    }
+                  />
+                }
+                showChevron={false}
               />
-            }
-            showChevron={false}
-          />
-          <SettingsItem
-            title="Sleep Insights"
-            subtitle="Get insights about your sleep"
-            icon="analytics-outline"
-            rightComponent={
-              <Switch
-                value={notifications.sleepInsights}
-                onValueChange={(value) => updateNotificationSettings({ sleepInsights: value })}
+              <SettingsItem
+                title="Sleep Insights"
+                subtitle="Get insights about your sleep"
+                icon="analytics-outline"
+                rightComponent={
+                  <Switch
+                    value={notifications.sleepInsights}
+                    onValueChange={(value) => updateNotificationSettings({ sleepInsights: value })}
+                  />
+                }
+                showChevron={false}
               />
-            }
-            showChevron={false}
-          />
-          <SettingsItem
-            title="Weather Alerts"
-            subtitle="Weather-based alarm adjustments"
-            icon="partly-sunny-outline"
-            rightComponent={
-              <Switch
-                value={notifications.weatherAlerts}
-                onValueChange={(value) => updateNotificationSettings({ weatherAlerts: value })}
+              <SettingsItem
+                title="Weather Alerts"
+                subtitle="Weather-based alarm adjustments"
+                icon="partly-sunny-outline"
+                rightComponent={
+                  <Switch
+                    value={notifications.weatherAlerts}
+                    onValueChange={(value) => updateNotificationSettings({ weatherAlerts: value })}
+                  />
+                }
+                showChevron={false}
               />
-            }
-            showChevron={false}
-          />
+            </>
+          )}
         </SettingsSection>
 
         {/* Audio Section */}

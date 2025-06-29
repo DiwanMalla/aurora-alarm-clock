@@ -88,10 +88,18 @@ export const useThemeSettings = () => {
 export const useNotificationSettings = () => {
   const notifications = useSettingsStore((state) => state.settings.notifications);
   const updateNotificationSettings = useSettingsStore((state) => state.updateNotificationSettings);
+  const toggleNotifications = useSettingsStore((state) => state.toggleNotifications);
+  const setNotificationPermissionStatus = useSettingsStore(
+    (state) => state.setNotificationPermissionStatus
+  );
+  const markPermissionAsAsked = useSettingsStore((state) => state.markPermissionAsAsked);
 
   return {
     notifications,
     updateNotificationSettings,
+    toggleNotifications,
+    setNotificationPermissionStatus,
+    markPermissionAsAsked,
   };
 };
 

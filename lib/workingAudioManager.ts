@@ -56,6 +56,7 @@ export const AVAILABLE_SOUNDS: SoundOption[] = [
 class WorkingAudioManager {
   private static instance: WorkingAudioManager;
   private currentAlarm: Audio.Sound | null = null;
+  private currentSound: Audio.Sound | null = null; // For timer sounds
   private isInitialized = false;
   private alarmInterval: number | null = null;
 
@@ -211,7 +212,7 @@ class WorkingAudioManager {
     }, 30000) as unknown as number;
   }
 
-  async playTimerSound(): Promise<void> {
+  async playTimerSound(loop: boolean = false): Promise<void> {
     try {
       await this.initialize();
 
@@ -224,17 +225,23 @@ class WorkingAudioManager {
         const { sound } = await Audio.Sound.createAsync(soundSource as number, {
           shouldPlay: true,
           volume: 0.8,
+          isLooping: loop, // Enable looping if requested
         });
 
-        // Auto-cleanup after 2 seconds
-        setTimeout(async () => {
-          try {
-            await sound.stopAsync();
-            await sound.unloadAsync();
-          } catch {
-            console.log('Audio cleanup completed');
-          }
-        }, 2000);
+        // Store the sound for potential stopping
+        if (loop) {
+          this.currentSound = sound;
+        } else {
+          // Auto-cleanup after 2 seconds for non-looping sound
+          setTimeout(async () => {
+            try {
+              await sound.stopAsync();
+              await sound.unloadAsync();
+            } catch {
+              console.log('Audio cleanup completed');
+            }
+          }, 2000);
+        }
 
         console.log('⏲️ Timer beep sound played');
       } catch {
@@ -363,6 +370,27 @@ class WorkingAudioManager {
         this.currentAlarm = null;
       }
 
+      // Force stop current timer sound
+      if (this.currentSound) {
+        console.log('🛑 Force: Stopping current timer sound...');
+
+        try {
+          await this.currentSound.stopAsync();
+          console.log('✅ Force: Stopped timer sound');
+        } catch (stopError) {
+          console.log('Force: Timer sound stop failed:', stopError);
+        }
+
+        try {
+          await this.currentSound.unloadAsync();
+          console.log('✅ Force: Unloaded timer sound');
+        } catch (unloadError) {
+          console.log('Force: Timer sound unload failed:', unloadError);
+        }
+
+        this.currentSound = null;
+      }
+
       // Cancel all notifications
       await Notifications.cancelAllScheduledNotificationsAsync();
       console.log('✅ Force: Cancelled notifications');
@@ -382,6 +410,7 @@ class WorkingAudioManager {
       console.error('❌ Force stop failed:', error);
       // Always clear references even if operations fail
       this.currentAlarm = null;
+      this.currentSound = null;
       this.alarmInterval = null;
     }
   }

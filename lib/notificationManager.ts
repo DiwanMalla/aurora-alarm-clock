@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { audioManager } from './simpleAudioManager';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 // Type declarations
 declare const console: {
@@ -39,9 +40,20 @@ class NotificationManager {
     return NotificationManager.instance;
   }
 
-  async initialize(): Promise<boolean> {
-    if (this.isInitialized) return true;
+  private getSettings() {
+    // Get settings from store
+    return useSettingsStore.getState().settings;
+  }
 
+  private areNotificationsEnabled(): boolean {
+    const settings = this.getSettings();
+    const { notifications } = settings;
+
+    // Check if global notifications are enabled and permission is granted
+    return notifications.enabled && notifications.permissionStatus === 'granted';
+  }
+
+  async requestPermissions(): Promise<boolean> {
     try {
       // Check if device supports notifications
       if (!Device.isDevice) {
@@ -49,23 +61,49 @@ class NotificationManager {
         return false;
       }
 
-      // Request notification permissions
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
+
+      // Update the permission status in settings
+      const { setNotificationPermissionStatus, markPermissionAsAsked } =
+        useSettingsStore.getState();
 
       if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
+        markPermissionAsAsked();
       }
 
-      if (finalStatus !== 'granted') {
-        console.warn('Notification permission not granted');
+      // Update the settings store with the final status
+      setNotificationPermissionStatus(finalStatus as 'granted' | 'denied' | 'undetermined');
+
+      if (finalStatus === 'granted') {
+        console.log('✅ Notification permissions granted');
+        return true;
+      } else {
+        console.warn('❌ Notification permissions denied');
         return false;
       }
+    } catch (error) {
+      console.error('❌ Failed to request notification permissions:', error);
+      return false;
+    }
+  }
 
-      this.isInitialized = true;
-      console.log('✅ NotificationManager initialized');
-      return true;
+  async initialize(): Promise<boolean> {
+    if (this.isInitialized) return true;
+
+    try {
+      const permissionGranted = await this.requestPermissions();
+
+      if (permissionGranted) {
+        this.isInitialized = true;
+        console.log('✅ NotificationManager initialized');
+        return true;
+      } else {
+        console.warn('❌ NotificationManager initialization failed - no permissions');
+        return false;
+      }
     } catch (error) {
       console.error('❌ Failed to initialize NotificationManager:', error);
       return false;
@@ -74,6 +112,12 @@ class NotificationManager {
 
   async scheduleAlarmNotification(alarm: AlarmNotification): Promise<string | null> {
     try {
+      // Check if alarm notifications are enabled
+      if (!this.areNotificationsEnabled()) {
+        console.log('📴 Alarm notifications are disabled in settings');
+        return null;
+      }
+
       await this.initialize();
 
       const notificationId = await Notifications.scheduleNotificationAsync({
@@ -104,11 +148,27 @@ class NotificationManager {
     title: string = 'Timer'
   ): Promise<string | null> {
     try {
+      // Check if timer notifications are enabled
+      if (!this.areNotificationsEnabled()) {
+        console.log('📴 Timer notifications are disabled in settings');
+        return null;
+      }
+
       await this.initialize();
 
-      // Calculate trigger time for when timer completes
-      // For now using immediate trigger - will be enhanced later
-      // const triggerDate = new Date(Date.now() + duration * 1000);
+      // Debug logging - removed due to type restrictions
+      if (duration <= 0) {
+        console.warn('⚠️ Invalid duration for timer notification:', duration);
+        return null;
+      }
+
+      if (duration < 1) {
+        console.warn('⚠️ Duration too short for notification:', duration);
+        return null;
+      }
+
+      // Calculate the exact time when notification should trigger
+      const triggerDate = new Date(Date.now() + duration * 1000);
 
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
@@ -121,10 +181,14 @@ class NotificationManager {
             duration,
           },
         },
-        trigger: null, // Trigger immediately for now
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: triggerDate,
+        },
       });
 
-      console.log(`⏲️ Scheduled timer notification: ${notificationId}`);
+      // Schedule notification for the future
+      console.log('⏲️ Scheduled timer notification:', notificationId);
       return notificationId;
     } catch (error) {
       console.error('❌ Failed to schedule timer notification:', error);

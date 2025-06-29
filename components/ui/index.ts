@@ -6,6 +6,7 @@ export { default as Modal } from './Modal';
 export { default as TextInput } from './TextInput';
 export { default as Label } from './Label';
 export { IPhoneTimePicker } from './iPhoneTimePicker';
+export { IOSWheelTimePicker } from './iOSWheelTimePicker';
 
 // Re-export types
 export type { TimePicker as TimePickerProps } from './TimePicker';

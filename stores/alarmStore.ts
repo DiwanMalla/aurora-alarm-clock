@@ -36,6 +36,7 @@ export interface Alarm {
     enabled: boolean;
     window: number; // minutes before set time
   };
+  scheduledDate?: Date; // For one-time alarms with specific dates
   createdAt: Date;
   updatedAt: Date;
 }
@@ -88,15 +89,30 @@ const getNextAlarmTime = (alarm: Alarm): Date | null => {
 
   if (!hasRepeat) {
     // One-time alarm
-    const alarmTime = new Date();
-    alarmTime.setHours(hours, minutes, 0, 0);
+    if (alarm.scheduledDate) {
+      // Alarm has a specific scheduled date
+      const scheduledDate = new Date(alarm.scheduledDate);
+      const alarmTime = new Date(scheduledDate);
+      alarmTime.setHours(hours, minutes, 0, 0);
 
-    // If the time has passed today, set for tomorrow
-    if (alarmTime <= now) {
-      alarmTime.setDate(alarmTime.getDate() + 1);
+      // Only return if the alarm time is in the future
+      if (alarmTime > now) {
+        return alarmTime;
+      } else {
+        return null; // This alarm has already passed
+      }
+    } else {
+      // Legacy one-time alarm without scheduled date - set for next available time
+      const alarmTime = new Date();
+      alarmTime.setHours(hours, minutes, 0, 0);
+
+      // If the time has passed today, set for tomorrow
+      if (alarmTime <= now) {
+        alarmTime.setDate(alarmTime.getDate() + 1);
+      }
+
+      return alarmTime;
     }
-
-    return alarmTime;
   }
 
   // Recurring alarm - find next occurrence

@@ -74,8 +74,10 @@ function RootLayoutNav() {
           <Stack.Screen name="alarm-creation" options={{ headerShown: false }} />
           <Stack.Screen name="alarm-preview" options={{ headerShown: false }} />
           <Stack.Screen name="alarm-ringing" options={{ headerShown: false }} />
+          <Stack.Screen name="timer-finished" options={{ headerShown: false }} />
           <Stack.Screen name="timer" options={{ headerShown: false }} />
           <Stack.Screen name="stopwatch" options={{ headerShown: false }} />
+
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </NavigationThemeProvider>

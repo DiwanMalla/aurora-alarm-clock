@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 // Type declarations
 declare const setInterval: (callback: () => void, ms: number) => number;
 declare const clearInterval: (id: number) => void;
+declare const setTimeout: (callback: () => void, ms: number) => number;
 declare const console: {
   log: (message?: string, ...optionalParams: unknown[]) => void;
   error: (message?: string, ...optionalParams: unknown[]) => void;
@@ -16,6 +17,7 @@ class AlarmScheduler {
   private static instance: AlarmScheduler;
   private checkInterval: number | null = null;
   private isRunning = false;
+  private recentlyTriggered = new Set<string>(); // Track recently triggered alarms
 
   static getInstance(): AlarmScheduler {
     if (!AlarmScheduler.instance) {
@@ -30,10 +32,10 @@ class AlarmScheduler {
     console.log('🔔 Starting alarm scheduler...');
     this.isRunning = true;
 
-    // Check for alarms every 30 seconds for more accurate triggering
+    // Check for alarms every 1 second for precise triggering
     this.checkInterval = setInterval(() => {
       this.checkAlarms();
-    }, 30000) as unknown as number;
+    }, 1000) as unknown as number;
 
     // Initial check
     this.checkAlarms();
@@ -49,6 +51,9 @@ class AlarmScheduler {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
     }
+
+    // Clear recently triggered alarms
+    this.recentlyTriggered.clear();
   }
 
   private checkAlarms(): void {
@@ -73,14 +78,24 @@ class AlarmScheduler {
     alarm: Alarm,
     currentTime: string,
     currentDay: string,
-    _now: Date
+    now: Date
   ): boolean {
+    // Create a unique key for this alarm at this minute
+    const alarmKey = `${alarm.id}-${currentTime}`;
+
+    // Check if we've already triggered this alarm in this minute
+    if (this.recentlyTriggered.has(alarmKey)) {
+      return false;
+    }
+
     // Parse alarm time
     const [alarmHours, alarmMinutes] = alarm.time.split(':').map(Number);
     const [currentHours, currentMinutes] = currentTime.split(':').map(Number);
+    const currentSeconds = now.getSeconds();
 
-    // Check if we're in the same minute as the alarm
-    const isTimeMatch = alarmHours === currentHours && alarmMinutes === currentMinutes;
+    // Check if we're in the same minute as the alarm and within the first 3 seconds
+    const isTimeMatch =
+      alarmHours === currentHours && alarmMinutes === currentMinutes && currentSeconds <= 2;
 
     if (!isTimeMatch) return false;
 
@@ -88,15 +103,41 @@ class AlarmScheduler {
     const hasRecurrence = Object.values(alarm.repeat).some((day: boolean) => day);
 
     if (hasRecurrence) {
-      // Check if today is one of the selected days
+      // Recurring alarm - check if today is one of the selected days
       return alarm.repeat[currentDay as keyof typeof alarm.repeat];
     } else {
-      // One-time alarm - always trigger if time matches (will be disabled after triggering)
-      return true;
+      // One-time alarm
+      if (alarm.scheduledDate) {
+        // Check if the scheduled date matches today
+        const scheduledDate = new Date(alarm.scheduledDate);
+        const today = new Date();
+
+        // Compare dates (year, month, day)
+        const isSameDate =
+          scheduledDate.getFullYear() === today.getFullYear() &&
+          scheduledDate.getMonth() === today.getMonth() &&
+          scheduledDate.getDate() === today.getDate();
+
+        return isSameDate;
+      } else {
+        // Legacy one-time alarm without scheduled date - trigger if time matches
+        return true;
+      }
     }
   }
   private triggerAlarm(alarm: Alarm): void {
     console.log(`🚨 Triggering alarm: ${alarm.label} at ${alarm.time}`);
+
+    // Mark this alarm as recently triggered
+    const now = new Date();
+    const currentTime = this.formatTime(now);
+    const alarmKey = `${alarm.id}-${currentTime}`;
+    this.recentlyTriggered.add(alarmKey);
+
+    // Clean up old entries (remove after 2 minutes to allow re-triggering)
+    setTimeout(() => {
+      this.recentlyTriggered.delete(alarmKey);
+    }, 120000);
 
     const alarmStore = useAlarmStore.getState();
 

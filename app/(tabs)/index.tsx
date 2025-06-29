@@ -63,14 +63,81 @@ export default function ClockScreen() {
     return () => breathingAnimation.stop();
   }, [scaleAnim]);
 
-  // Get next alarm
-  const nextAlarm = alarms
-    .filter((alarm) => alarm.enabled)
-    .sort((a, b) => {
-      const timeA = new Date(`1970-01-01T${a.time}:00`).getTime();
-      const timeB = new Date(`1970-01-01T${b.time}:00`).getTime();
-      return timeA - timeB;
-    })[0];
+  // Get next alarm using proper scheduling logic
+  const nextAlarm = useMemo(() => {
+    const enabledAlarms = alarms.filter((alarm) => alarm.enabled);
+    if (enabledAlarms.length === 0) return null;
+
+    const now = new Date();
+    const nextAlarms = enabledAlarms.map((alarm) => {
+      // Use the same logic as the alarm store's getNextAlarmTime
+      let nextTime: Date;
+
+      // Check if alarm has any repeat days enabled
+      const hasRepeatDays = Object.values(alarm.repeat).some((day) => day);
+
+      if (hasRepeatDays) {
+        // Recurring alarm - find next occurrence
+        const [hours, minutes] = alarm.time.split(':').map(Number);
+        const today = now.getDay();
+
+        // Convert repeat object to array of day numbers (0=Sunday, 1=Monday, etc.)
+        const repeatDays: number[] = [];
+        if (alarm.repeat.sunday) repeatDays.push(0);
+        if (alarm.repeat.monday) repeatDays.push(1);
+        if (alarm.repeat.tuesday) repeatDays.push(2);
+        if (alarm.repeat.wednesday) repeatDays.push(3);
+        if (alarm.repeat.thursday) repeatDays.push(4);
+        if (alarm.repeat.friday) repeatDays.push(5);
+        if (alarm.repeat.saturday) repeatDays.push(6);
+
+        // Find the next day this alarm should ring
+        const daysUntilNext = repeatDays
+          .map((day: number) => {
+            let diff = day - today;
+            if (diff < 0) diff += 7;
+            if (diff === 0) {
+              // Today - check if time has passed
+              const todayAlarmTime = new Date(now);
+              todayAlarmTime.setHours(hours, minutes, 0, 0);
+              if (todayAlarmTime <= now) {
+                diff = 7; // Next week
+              }
+            }
+            return diff;
+          })
+          .sort((a: number, b: number) => a - b)[0];
+
+        nextTime = new Date(now);
+        nextTime.setDate(now.getDate() + daysUntilNext);
+        nextTime.setHours(hours, minutes, 0, 0);
+      } else {
+        // One-time alarm
+        if (alarm.scheduledDate) {
+          // Use the stored scheduled date
+          const [hours, minutes] = alarm.time.split(':').map(Number);
+          nextTime = new Date(alarm.scheduledDate);
+          nextTime.setHours(hours, minutes, 0, 0);
+        } else {
+          // Fallback for alarms without scheduled date
+          const [hours, minutes] = alarm.time.split(':').map(Number);
+          nextTime = new Date(now);
+          nextTime.setHours(hours, minutes, 0, 0);
+
+          // If time has passed today, schedule for tomorrow
+          if (nextTime <= now) {
+            nextTime.setDate(nextTime.getDate() + 1);
+          }
+        }
+      }
+
+      return { alarm, nextTime };
+    });
+
+    // Sort by next occurrence time and return the earliest
+    nextAlarms.sort((a, b) => a.nextTime.getTime() - b.nextTime.getTime());
+    return nextAlarms[0]?.alarm || null;
+  }, [alarms]);
 
   // Format time based on settings
 

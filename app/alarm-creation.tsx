@@ -17,6 +17,7 @@ import { Typography, Spacing, BorderRadius, Colors } from '@/constants/Design';
 import { Alarm } from '@/stores/alarmStore';
 import { Ionicons } from '@expo/vector-icons';
 import { workingAudioManager, AVAILABLE_SOUNDS, SoundOption } from '@/lib/workingAudioManager';
+import { IOSWheelTimePicker } from '@/components/ui';
 
 // Type declaration for console
 declare const console: {
@@ -209,6 +210,20 @@ export default function AlarmCreationScreen() {
   const [selectedHour, setSelectedHour] = useState(initialHour);
   const [selectedMinute, setSelectedMinute] = useState(initialMinute);
   const [selectedAmPm, setSelectedAmPm] = useState(initialAmPm);
+
+  // Create a date object for the IOSWheelTimePicker
+  const [alarmTime, setAlarmTime] = useState(() => {
+    const date = new Date();
+    const hour24 =
+      selectedAmPm === 1 && selectedHour !== 12
+        ? selectedHour + 12
+        : selectedAmPm === 0 && selectedHour === 12
+          ? 0
+          : selectedHour;
+    date.setHours(hour24, selectedMinute, 0, 0);
+    return date;
+  });
+
   const [label, setLabel] = useState(editingAlarm?.label || 'Alarm');
   const [repeat, setRepeat] = useState(
     editingAlarm?.repeat || {
@@ -354,22 +369,125 @@ export default function AlarmCreationScreen() {
   // Calculate time until alarm
   const getTimeUntilAlarm = () => {
     const now = new Date();
-    const alarmTime = new Date();
     let hour24 = selectedHour;
     if (selectedAmPm === 1 && selectedHour !== 12) hour24 += 12;
     if (selectedAmPm === 0 && selectedHour === 12) hour24 = 0;
 
-    alarmTime.setHours(hour24, selectedMinute, 0, 0);
+    // Get the final repeat settings (consider isDailyEnabled)
+    const finalRepeat = isDailyEnabled
+      ? {
+          sunday: true,
+          monday: true,
+          tuesday: true,
+          wednesday: true,
+          thursday: true,
+          friday: true,
+          saturday: true,
+        }
+      : repeat;
 
-    if (alarmTime <= now) {
-      alarmTime.setDate(alarmTime.getDate() + 1);
+    // Check if any days are selected
+    const selectedDays = Object.keys(finalRepeat).filter(
+      (day) => finalRepeat[day as keyof typeof finalRepeat]
+    );
+
+    // If no days selected, treat as one-time alarm
+    if (selectedDays.length === 0) {
+      const alarmTime = new Date();
+      alarmTime.setHours(hour24, selectedMinute, 0, 0);
+
+      if (alarmTime <= now) {
+        alarmTime.setDate(alarmTime.getDate() + 1);
+      }
+
+      const diff = alarmTime.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      return `${hours}hr ${mins}min`;
     }
 
-    const diff = alarmTime.getTime() - now.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
+    // Find the next occurrence of the alarm considering repeat days
+    let nextAlarmTime = new Date();
+    nextAlarmTime.setHours(hour24, selectedMinute, 0, 0);
+
+    // Day mapping for easier lookup
+    const dayMapping = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
+
+    let foundNextAlarm = false;
+    let daysChecked = 0;
+
+    while (!foundNextAlarm && daysChecked < 7) {
+      const dayOfWeek = nextAlarmTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const dayName = dayMapping[dayOfWeek];
+
+      // Check if this day is selected and the time hasn't passed yet (or it's a future day)
+      if (finalRepeat[dayName as keyof typeof finalRepeat]) {
+        if (nextAlarmTime > now) {
+          foundNextAlarm = true;
+          break;
+        }
+      }
+
+      // Move to the next day
+      nextAlarmTime.setDate(nextAlarmTime.getDate() + 1);
+      daysChecked++;
+    }
+
+    // If we couldn't find a next alarm within 7 days, something went wrong
+    // Default to tomorrow at the same time
+    if (!foundNextAlarm) {
+      nextAlarmTime = new Date();
+      nextAlarmTime.setHours(hour24, selectedMinute, 0, 0);
+      nextAlarmTime.setDate(nextAlarmTime.getDate() + 1);
+    }
+
+    const diff = nextAlarmTime.getTime() - now.getTime();
+    const totalHours = Math.floor(diff / (1000 * 60 * 60));
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-    return `${hours}hr ${mins}min`;
+    // Format the display to show days if more than 24 hours
+    if (totalHours >= 24) {
+      const days = Math.floor(totalHours / 24);
+      const hours = totalHours % 24;
+
+      if (days === 1 && hours === 0) {
+        return `1 day`;
+      } else if (days === 1) {
+        return `1 day ${hours}hr`;
+      } else if (hours === 0) {
+        return `${days} days`;
+      } else {
+        return `${days} days ${hours}hr`;
+      }
+    } else {
+      return `${totalHours}hr ${mins}min`;
+    }
+  };
+
+  // Handle time change from the wheel picker
+  const handleAlarmTimeChange = (newTime: Date) => {
+    setAlarmTime(newTime);
+
+    // Update the existing state variables for compatibility
+    const hours = newTime.getHours();
+    const minutes = newTime.getMinutes();
+
+    // Convert to 12-hour format
+    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const amPm = hours >= 12 ? 1 : 0;
+
+    setSelectedHour(hour12);
+    setSelectedMinute(minutes);
+    setSelectedAmPm(amPm);
   };
 
   const handleSave = () => {
@@ -416,6 +534,24 @@ export default function AlarmCreationScreen() {
         enabled: false,
         window: 30,
       },
+      // For one-time alarms, calculate the scheduled date
+      scheduledDate: (() => {
+        const hasRepeat = Object.values(finalRepeat).some((day) => day);
+        if (!hasRepeat) {
+          // One-time alarm - calculate the next occurrence of this time
+          const now = new Date();
+          const alarmTime = new Date();
+          alarmTime.setHours(hour24, selectedMinute, 0, 0);
+
+          // If the time has passed today, set for tomorrow
+          if (alarmTime <= now) {
+            alarmTime.setDate(alarmTime.getDate() + 1);
+          }
+
+          return alarmTime;
+        }
+        return undefined; // Recurring alarms don't need scheduledDate
+      })(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -903,27 +1039,11 @@ export default function AlarmCreationScreen() {
       >
         {/* Time Picker */}
         <View style={styles.timePickerSection}>
-          <View style={styles.timePickerContainer}>
-            <WheelPicker
-              items={hours}
-              selectedIndex={selectedHour - 1}
-              onSelectionChange={(index) => setSelectedHour(index + 1)}
-              width={90} // Slightly wider for hours
-            />
-            <Text style={styles.colonText}>:</Text>
-            <WheelPicker
-              items={minutes}
-              selectedIndex={selectedMinute}
-              onSelectionChange={setSelectedMinute}
-              width={90} // Slightly wider for minutes
-            />
-            <WheelPicker
-              items={amPmOptions}
-              selectedIndex={selectedAmPm}
-              onSelectionChange={setSelectedAmPm}
-              width={60} // Narrower for AM/PM
-            />
-          </View>
+          <IOSWheelTimePicker
+            value={alarmTime}
+            onChange={handleAlarmTimeChange}
+            testID="alarm-time-picker"
+          />
         </View>
 
         {/* Repeat Days */}

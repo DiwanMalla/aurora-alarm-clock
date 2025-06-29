@@ -5,10 +5,17 @@ import { ColorSchemeName } from 'react-native';
 
 // Settings interfaces
 export interface NotificationSettings {
+  // Global notification toggle - controls all notifications
+  enabled: boolean;
+
+  // Individual notification preferences (only used when global is enabled)
   bedtimeReminder: boolean;
   sleepInsights: boolean;
   weatherAlerts: boolean;
-  alarmNotifications: boolean;
+
+  // Permission state
+  permissionStatus: 'granted' | 'denied' | 'undetermined';
+  permissionAsked: boolean;
 }
 
 export interface SmartHomeSettings {
@@ -77,6 +84,9 @@ interface SettingsStore {
 
   // Notification actions
   updateNotificationSettings: (updates: Partial<NotificationSettings>) => void;
+  toggleNotifications: () => void;
+  setNotificationPermissionStatus: (status: 'granted' | 'denied' | 'undetermined') => void;
+  markPermissionAsAsked: () => void;
 
   // Smart home actions
   updateSmartHomeSettings: (updates: Partial<SmartHomeSettings>) => void;
@@ -121,10 +131,12 @@ const defaultSettings: AppSettings = {
   timeFormat: '12h',
 
   notifications: {
+    enabled: true, // Default to enabled for better UX
     bedtimeReminder: true,
     sleepInsights: true,
     weatherAlerts: false,
-    alarmNotifications: true,
+    permissionStatus: 'undetermined',
+    permissionAsked: false,
   },
 
   smartHome: {
@@ -190,6 +202,47 @@ export const useSettingsStore = create<SettingsStore>()(
           settings: {
             ...state.settings,
             notifications: { ...state.settings.notifications, ...updates },
+          },
+        }));
+      },
+
+      toggleNotifications: () => {
+        const currentState = get();
+        const wasEnabled = currentState.settings.notifications.enabled;
+
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            notifications: {
+              ...state.settings.notifications,
+              enabled: !state.settings.notifications.enabled,
+            },
+          },
+        }));
+
+        // If notifications were just enabled and permission hasn't been asked, request it
+        if (!wasEnabled && !currentState.settings.notifications.permissionAsked) {
+          // Import notification manager dynamically to avoid circular dependencies
+          import('../lib/notificationManager').then(({ notificationManager }) => {
+            notificationManager.requestPermissions();
+          });
+        }
+      },
+
+      setNotificationPermissionStatus: (status) => {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            notifications: { ...state.settings.notifications, permissionStatus: status },
+          },
+        }));
+      },
+
+      markPermissionAsAsked: () => {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            notifications: { ...state.settings.notifications, permissionAsked: true },
           },
         }));
       },

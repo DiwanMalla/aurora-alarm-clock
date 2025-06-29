@@ -3,11 +3,11 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 import { Label } from '@/components/ui';
 import { useTheme } from '@/hooks/useTheme';
 import { Spacing } from '@/constants/Design';
-import { workingAudioManager } from '@/lib/workingAudioManager';
 import { notificationManager } from '@/lib/notificationManager';
 import * as Haptics from 'expo-haptics';
 
@@ -26,18 +26,45 @@ export default function TimerScreen() {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<number | null>(null);
+  const notificationIdRef = useRef<string | null>(null);
+  const notificationScheduledRef = useRef<boolean>(false);
+  const originalDurationRef = useRef<number>(0);
 
   // Preset timer values (in minutes)
   const presets = [1, 3, 5, 10, 15, 30, 45, 60];
 
   useEffect(() => {
+    const currentNotificationId = notificationIdRef.current;
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      // Cancel any pending notification when component unmounts
+      if (currentNotificationId) {
+        notificationManager.cancelNotification(currentNotificationId).catch(console.error);
+      }
+      // Reset the flag
+      notificationScheduledRef.current = false;
     };
   }, []);
 
+  // Effect to handle timer start/stop and notification scheduling
+  useEffect(() => {
+    if (isRunning && timeLeft > 0 && !notificationScheduledRef.current) {
+      // Schedule notification only once when timer starts
+      notificationManager
+        .scheduleTimerNotification(timeLeft, 'Timer Complete')
+        .then((notificationId) => {
+          notificationIdRef.current = notificationId;
+          notificationScheduledRef.current = true;
+        })
+        .catch((error) => {
+          console.error('Failed to schedule timer notification:', error);
+        });
+    }
+  }, [isRunning, timeLeft]);
+
+  // Effect to handle the countdown interval
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
@@ -45,11 +72,15 @@ export default function TimerScreen() {
           if (prev <= 1) {
             setIsRunning(false);
             setIsPaused(false);
-            // Play timer sound and add strong haptic feedback
-            workingAudioManager.playTimerSound().catch(console.error);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {
-              // Ignore haptic errors - not critical
-            });
+            // Cancel the notification since the timer completed naturally
+            if (notificationIdRef.current) {
+              const notificationId = notificationIdRef.current;
+              notificationManager.cancelNotification(notificationId).catch(console.error);
+              notificationIdRef.current = null;
+              notificationScheduledRef.current = false;
+            }
+            // Navigate to timer finished screen instead of playing sound here
+            router.push(`/timer-finished?duration=${originalDurationRef.current}`);
             return 0;
           }
           return prev - 1;
@@ -80,12 +111,9 @@ export default function TimerScreen() {
       // Starting fresh
       const totalSeconds = minutes * 60 + seconds;
       setTimeLeft(totalSeconds);
-
-      // Schedule notification for when timer completes
-      notificationManager
-        .scheduleTimerNotification(totalSeconds, 'Timer Complete')
-        .catch(console.error);
+      originalDurationRef.current = totalSeconds; // Store original duration
     }
+
     setIsRunning(true);
     setIsPaused(false);
 
@@ -99,6 +127,13 @@ export default function TimerScreen() {
     setIsRunning(false);
     setIsPaused(true);
 
+    // Cancel the notification since timer is paused
+    if (notificationIdRef.current) {
+      notificationManager.cancelNotification(notificationIdRef.current).catch(console.error);
+      notificationIdRef.current = null;
+      notificationScheduledRef.current = false;
+    }
+
     // Add haptic feedback for pause action
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
       // Ignore haptic errors - not critical
@@ -109,6 +144,14 @@ export default function TimerScreen() {
     setIsRunning(false);
     setIsPaused(false);
     setTimeLeft(0);
+    originalDurationRef.current = 0; // Reset original duration
+
+    // Cancel any pending notification
+    if (notificationIdRef.current) {
+      notificationManager.cancelNotification(notificationIdRef.current).catch(console.error);
+      notificationIdRef.current = null;
+      notificationScheduledRef.current = false;
+    }
 
     // Add haptic feedback for reset action
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {
